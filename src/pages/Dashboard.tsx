@@ -325,7 +325,7 @@ function FoodLogRow({ log, onChanged }: { log: FoodLogWithFood; onChanged: () =>
           <p className="truncate font-label-md text-label-md text-on-surface">{log.food.name}</p>
           <p className="flex items-center gap-2 truncate text-sm text-on-surface-variant">
             {log.servings} × {log.food.serving_amount} {log.food.serving_unit}
-            {log.food.source === 'openfoodfacts' && <SourceTag />}
+            {log.food.source !== 'custom' && <SourceTag source={log.food.source} />}
           </p>
         </div>
       </div>

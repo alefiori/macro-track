@@ -1,6 +1,6 @@
 import { supabase } from './supabase'
 import type { Food, MealKey } from './database.types'
-import type { OffFood } from './openfoodfacts'
+import type { ExternalFood } from './foodSources'
 
 async function currentUserId(): Promise<string> {
   const { data, error } = await supabase.auth.getUser()
@@ -9,20 +9,24 @@ async function currentUserId(): Promise<string> {
 }
 
 /**
- * Ensure an Open Food Facts product exists as a local `foods` row and return it.
- * De-duplicates on off_id: if it already exists we reuse it, so logs always
- * reference a stable local food.
+ * Ensure an external food (Open Food Facts / USDA) exists as a local `foods`
+ * row and return it. De-duplicates on (source, off_id) so logs always
+ * reference a stable local food and the same item isn't imported twice.
  */
-export async function upsertOffFood(off: OffFood): Promise<Food> {
+export async function upsertExternalFood(food: ExternalFood): Promise<Food> {
   const userId = await currentUserId()
 
+  const findExisting = () =>
+    supabase
+      .from('foods')
+      .select('*')
+      .eq('source', food.source)
+      .eq('off_id', food.externalId)
+      .limit(1)
+      .maybeSingle()
+
   // Re-use an existing imported row if present (avoids partial-index upsert quirks).
-  const { data: existing, error: selErr } = await supabase
-    .from('foods')
-    .select('*')
-    .eq('off_id', off.off_id)
-    .limit(1)
-    .maybeSingle()
+  const { data: existing, error: selErr } = await findExisting()
   if (selErr) throw new Error(selErr.message)
   if (existing) return existing as Food
 
@@ -30,15 +34,15 @@ export async function upsertOffFood(off: OffFood): Promise<Food> {
     .from('foods')
     .insert({
       user_id: userId,
-      name: off.name,
-      brand: off.brand,
-      serving_amount: off.serving_amount,
-      serving_unit: off.serving_unit,
-      carbs_g: off.carbs_g,
-      protein_g: off.protein_g,
-      fats_g: off.fats_g,
-      source: 'openfoodfacts',
-      off_id: off.off_id,
+      name: food.name,
+      brand: food.brand,
+      serving_amount: food.serving_amount,
+      serving_unit: food.serving_unit,
+      carbs_g: food.carbs_g,
+      protein_g: food.protein_g,
+      fats_g: food.fats_g,
+      source: food.source,
+      off_id: food.externalId,
       is_custom: false,
     })
     .select('*')
@@ -46,12 +50,7 @@ export async function upsertOffFood(off: OffFood): Promise<Food> {
 
   // If a concurrent insert won the race, fall back to the existing row.
   if (error) {
-    const { data: raced } = await supabase
-      .from('foods')
-      .select('*')
-      .eq('off_id', off.off_id)
-      .limit(1)
-      .maybeSingle()
+    const { data: raced } = await findExisting()
     if (raced) return raced as Food
     throw new Error(error.message)
   }
@@ -66,6 +65,13 @@ export interface NewCustomFood {
   carbs_g: number
   protein_g: number
   fats_g: number
+}
+
+/** Fetch a single food by id (RLS limits this to own + global rows). */
+export async function getFood(id: string): Promise<Food | null> {
+  const { data, error } = await supabase.from('foods').select('*').eq('id', id).maybeSingle()
+  if (error) throw new Error(error.message)
+  return (data as Food) ?? null
 }
 
 export async function createCustomFood(input: NewCustomFood): Promise<Food> {
@@ -85,6 +91,26 @@ export async function createCustomFood(input: NewCustomFood): Promise<Food> {
       off_id: null,
       is_custom: true,
     })
+    .select('*')
+    .single()
+  if (error) throw new Error(error.message)
+  return data as Food
+}
+
+/** Update an existing custom food. RLS ensures only the owner can. */
+export async function updateCustomFood(id: string, input: NewCustomFood): Promise<Food> {
+  const { data, error } = await supabase
+    .from('foods')
+    .update({
+      name: input.name,
+      brand: input.brand ?? null,
+      serving_amount: input.serving_amount,
+      serving_unit: input.serving_unit,
+      carbs_g: input.carbs_g,
+      protein_g: input.protein_g,
+      fats_g: input.fats_g,
+    })
+    .eq('id', id)
     .select('*')
     .single()
   if (error) throw new Error(error.message)

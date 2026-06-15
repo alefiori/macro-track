@@ -9,23 +9,13 @@
  * OFF asks API consumers to send a descriptive User-Agent identifying the app.
  */
 import { round } from './macros'
+import { fetchWithRetry } from './retry'
+import type { ExternalFood } from './foodSources'
 
 const SEARCH_URL = 'https://world.openfoodfacts.org/cgi/search.pl'
 const PRODUCT_URL = 'https://world.openfoodfacts.org/api/v2/product'
 
 const USER_AGENT = 'MacroTrack/0.1 (daily macros tracker; +https://github.com/macrotrack)'
-
-/** A food normalized to a single serving — ready to upsert into `foods`. */
-export interface OffFood {
-  off_id: string
-  name: string
-  brand: string | null
-  serving_amount: number
-  serving_unit: string
-  carbs_g: number
-  protein_g: number
-  fats_g: number
-}
 
 interface OffProduct {
   code?: string
@@ -44,7 +34,7 @@ function num(v: number | string | undefined): number | null {
  * Normalize one OFF product to per-serving macros.
  * Returns null when any of the three macros is missing (we skip those).
  */
-export function normalizeProduct(p: OffProduct): OffFood | null {
+export function normalizeProduct(p: OffProduct): ExternalFood | null {
   const code = p.code
   const carbs100 = num(p.nutriments?.carbohydrates_100g)
   const protein100 = num(p.nutriments?.proteins_100g)
@@ -59,7 +49,8 @@ export function normalizeProduct(p: OffProduct): OffFood | null {
 
   // Everything is stored on a fixed 100 g basis using the _100g values.
   return {
-    off_id: code,
+    source: 'openfoodfacts',
+    externalId: code,
     name,
     brand: p.brands ? p.brands.split(',')[0].trim() : null,
     serving_amount: 100,
@@ -74,7 +65,7 @@ export function normalizeProduct(p: OffProduct): OffFood | null {
 export async function searchOpenFoodFacts(
   query: string,
   signal?: AbortSignal,
-): Promise<OffFood[]> {
+): Promise<ExternalFood[]> {
   const q = query.trim()
   if (!q) return []
 
@@ -87,19 +78,20 @@ export async function searchOpenFoodFacts(
     fields: 'code,product_name,brands,nutriments',
   })
 
-  const res = await fetch(`${SEARCH_URL}?${params.toString()}`, {
-    signal,
-    headers: { 'User-Agent': USER_AGENT, Accept: 'application/json' },
-  })
+  const res = await fetchWithRetry(
+    `${SEARCH_URL}?${params.toString()}`,
+    { headers: { 'User-Agent': USER_AGENT, Accept: 'application/json' } },
+    { signal },
+  )
   if (!res.ok) throw new Error(`Open Food Facts search failed (${res.status})`)
 
   const data = (await res.json()) as { products?: OffProduct[] }
   const seen = new Set<string>()
-  const out: OffFood[] = []
+  const out: ExternalFood[] = []
   for (const p of data.products ?? []) {
     const food = normalizeProduct(p)
-    if (food && !seen.has(food.off_id)) {
-      seen.add(food.off_id)
+    if (food && !seen.has(food.externalId)) {
+      seen.add(food.externalId)
       out.push(food)
     }
   }
@@ -110,17 +102,18 @@ export async function searchOpenFoodFacts(
 export async function lookupBarcode(
   barcode: string,
   signal?: AbortSignal,
-): Promise<OffFood | null> {
+): Promise<ExternalFood | null> {
   const code = barcode.trim()
   if (!code) return null
 
   const params = new URLSearchParams({
     fields: 'code,product_name,brands,nutriments',
   })
-  const res = await fetch(`${PRODUCT_URL}/${encodeURIComponent(code)}.json?${params}`, {
-    signal,
-    headers: { 'User-Agent': USER_AGENT, Accept: 'application/json' },
-  })
+  const res = await fetchWithRetry(
+    `${PRODUCT_URL}/${encodeURIComponent(code)}.json?${params}`,
+    { headers: { 'User-Agent': USER_AGENT, Accept: 'application/json' } },
+    { signal },
+  )
   if (!res.ok) throw new Error(`Open Food Facts lookup failed (${res.status})`)
 
   const data = (await res.json()) as { status?: number; product?: OffProduct }

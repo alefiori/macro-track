@@ -1,7 +1,9 @@
 /** Hand-written types mirroring the SQL schema in supabase/migrations. */
 
 export type MealKey = 'breakfast' | 'lunch' | 'dinner' | 'snack'
-export type FoodSource = 'custom' | 'openfoodfacts'
+export type FoodSource = 'custom' | 'openfoodfacts' | 'usda'
+/** External (non-custom) food databases the app imports from. */
+export type ExternalSource = Exclude<FoodSource, 'custom'>
 
 // NOTE: these are `type` aliases, not interfaces — object types from `type`
 // satisfy `Record<string, unknown>` (the supabase-js GenericSchema constraint),

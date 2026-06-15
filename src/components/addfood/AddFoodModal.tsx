@@ -8,32 +8,23 @@ import { useFoodSearch, type SearchResult } from '@/hooks/useFoodSearch'
 import { useAppShell } from '@/context/AppShellContext'
 import { MACROS, MEALS, type MealKey } from '@/lib/constants'
 import { calories, caloriesForServings, scaleMacros, round, type MacroGrams } from '@/lib/macros'
-import { logFoodEntry, upsertOffFood } from '@/lib/foods'
+import { logFoodEntry, upsertExternalFood } from '@/lib/foods'
 import { formatLong } from '@/lib/date'
+import { SOURCE_ICONS } from '@/lib/foodSources'
+import type { FoodSource } from '@/lib/database.types'
 
 interface NormalizedFood extends MacroGrams {
   name: string
   subtitle: string
-  isOff: boolean
+  source: FoodSource
 }
 
 function normalize(result: SearchResult): NormalizedFood {
-  if (result.kind === 'local') {
-    const f = result.food
-    return {
-      name: f.name,
-      subtitle: `${f.brand ? f.brand + ' • ' : ''}${f.serving_amount} ${f.serving_unit}`,
-      isOff: f.source === 'openfoodfacts',
-      carbs_g: f.carbs_g,
-      protein_g: f.protein_g,
-      fats_g: f.fats_g,
-    }
-  }
   const f = result.food
   return {
     name: f.name,
-    subtitle: `${f.brand ? f.brand + ' • ' : ''}${f.serving_amount}${f.serving_unit}`,
-    isOff: true,
+    subtitle: `${f.brand ? f.brand + ' • ' : ''}${f.serving_amount} ${f.serving_unit}`,
+    source: f.source,
     carbs_g: f.carbs_g,
     protein_g: f.protein_g,
     fats_g: f.fats_g,
@@ -82,8 +73,8 @@ export function AddFoodModal({
     setError(null)
     try {
       let foodId: string
-      if (selected.kind === 'off') {
-        const food = await upsertOffFood(selected.food)
+      if (selected.kind === 'external') {
+        const food = await upsertExternalFood(selected.food)
         foodId = food.id
       } else {
         foodId = selected.food.id
@@ -136,7 +127,7 @@ export function AddFoodModal({
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search foods + Open Food Facts…"
+                placeholder="Search your foods and food databases…"
                 className="h-[48px] w-full rounded-lg border border-outline-variant bg-surface pl-[40px] pr-4 font-body-md text-body-md text-on-surface outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
               />
               {loading && <Spinner className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary" />}
@@ -153,7 +144,9 @@ export function AddFoodModal({
             {!query.trim() && (
               <div className="flex flex-col items-center gap-sm py-2xl text-center text-on-surface-variant">
                 <Icon name="nutrition" className="text-3xl text-outline-variant" />
-                <p className="font-body-md text-body-md">Search your foods and the Open Food Facts database.</p>
+                <p className="font-body-md text-body-md">
+                  Search your foods and public food databases.
+                </p>
               </div>
             )}
 
@@ -161,6 +154,17 @@ export function AddFoodModal({
               <div className="flex flex-col items-center gap-sm py-2xl text-center text-on-surface-variant">
                 <Icon name="search_off" className="text-3xl text-outline-variant" />
                 <p className="font-body-md text-body-md">No foods found for “{query.trim()}”.</p>
+              </div>
+            )}
+
+            {results.length > 0 && (
+              <div className="sticky top-0 z-10 mb-xs flex items-center justify-between bg-surface-container-lowest py-sm">
+                <h3 className="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant">
+                  Results
+                </h3>
+                <span className="font-body-md text-sm text-outline">
+                  {results.length} result{results.length === 1 ? '' : 's'}
+                </span>
               </div>
             )}
 
@@ -185,19 +189,19 @@ export function AddFoodModal({
                     <div className="flex min-w-0 items-center gap-md">
                       <div
                         className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
-                          n.isOff
-                            ? 'bg-surface-container-high text-secondary'
-                            : 'bg-primary-container text-on-primary-container'
+                          n.source === 'custom'
+                            ? 'bg-primary-container text-on-primary-container'
+                            : 'bg-surface-container-high text-secondary'
                         }`}
                       >
-                        <Icon name={n.isOff ? 'public' : 'restaurant'} />
+                        <Icon name={n.source === 'custom' ? 'restaurant' : SOURCE_ICONS[n.source]} />
                       </div>
                       <div className="min-w-0">
                         <h3 className="truncate font-label-md text-label-md text-on-surface">{n.name}</h3>
                         <p className="truncate font-body-md text-sm text-on-surface-variant">{n.subtitle}</p>
-                        {n.isOff && (
+                        {n.source !== 'custom' && (
                           <span className="mt-1 inline-block">
-                            <SourceTag />
+                            <SourceTag source={n.source} />
                           </span>
                         )}
                       </div>
@@ -259,9 +263,9 @@ export function AddFoodModal({
                   {detail.name}
                 </h2>
                 <p className="font-body-md text-body-md text-on-surface-variant">{detail.subtitle}</p>
-                {detail.isOff && (
+                {detail.source !== 'custom' && (
                   <span className="mt-sm inline-block">
-                    <SourceTag />
+                    <SourceTag source={detail.source} />
                   </span>
                 )}
               </div>

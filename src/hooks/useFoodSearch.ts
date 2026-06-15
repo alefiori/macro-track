@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { searchOpenFoodFacts, type OffFood } from '@/lib/openfoodfacts'
+import { searchOpenFoodFacts } from '@/lib/openfoodfacts'
+import { searchUsda } from '@/lib/usda'
+import type { ExternalFood } from '@/lib/foodSources'
 import type { Food } from '@/lib/database.types'
 import { useDebounce } from './useDebounce'
 
 export type SearchResult =
   | { kind: 'local'; id: string; food: Food }
-  | { kind: 'off'; id: string; food: OffFood }
+  | { kind: 'external'; id: string; food: ExternalFood }
 
 interface State {
   results: SearchResult[]
@@ -14,11 +16,14 @@ interface State {
   error: string | null
 }
 
+const externalId = (source: string, id: string) => `${source}:${id}`
+
 /**
  * Searches the user's own foods (custom + previously imported) and merges them
- * with live Open Food Facts results. The query is debounced (~350ms). Local
- * matches come first; OFF rows already present locally (same off_id) are
- * de-duplicated out.
+ * with live results from Open Food Facts and USDA FoodData Central. The query
+ * is debounced (~350ms). Local matches come first; external rows already
+ * present locally (same source + id) are de-duplicated out, as are duplicates
+ * across the two external sources.
  */
 export function useFoodSearch(query: string) {
   const debounced = useDebounce(query.trim(), 350)
@@ -43,23 +48,37 @@ export function useFoodSearch(query: string) {
           .order('created_at', { ascending: false })
           .limit(20)
 
+        // External sources never reject the whole search — failures degrade to [].
         const offPromise = searchOpenFoodFacts(debounced, controller.signal).catch(() => [])
+        const usdaPromise = searchUsda(debounced, controller.signal).catch(() => [])
 
-        const [{ data: localData, error: localErr }, offData] = await Promise.all([
+        const [{ data: localData, error: localErr }, offData, usdaData] = await Promise.all([
           localPromise,
           offPromise,
+          usdaPromise,
         ])
         if (cancelled) return
         if (localErr) throw new Error(localErr.message)
 
         const local = (localData ?? []) as Food[]
-        const localOffIds = new Set(local.map((f) => f.off_id).filter(Boolean) as string[])
+
+        // Track what's already represented so we don't show duplicates.
+        const seen = new Set<string>()
+        for (const f of local) {
+          if (f.off_id) seen.add(externalId(f.source, f.off_id))
+        }
+
+        const externalResults: SearchResult[] = []
+        for (const f of [...offData, ...usdaData]) {
+          const key = externalId(f.source, f.externalId)
+          if (seen.has(key)) continue
+          seen.add(key)
+          externalResults.push({ kind: 'external', id: `ext:${key}`, food: f })
+        }
 
         const results: SearchResult[] = [
           ...local.map((f) => ({ kind: 'local' as const, id: `local:${f.id}`, food: f })),
-          ...offData
-            .filter((f) => !localOffIds.has(f.off_id))
-            .map((f) => ({ kind: 'off' as const, id: `off:${f.off_id}`, food: f })),
+          ...externalResults,
         ]
 
         setState({ results, loading: false, error: null })

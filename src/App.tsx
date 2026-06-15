@@ -35,6 +35,7 @@ export default function App() {
             <Route path="/targets" element={<Targets />} />
             <Route path="/foods" element={<MyFoods />} />
             <Route path="/foods/new" element={<CreateCustomFood />} />
+            <Route path="/foods/:id/edit" element={<CreateCustomFood />} />
             <Route path="/profile" element={<Profile />} />
           </Route>
 

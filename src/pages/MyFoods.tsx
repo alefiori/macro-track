@@ -130,7 +130,7 @@ export default function MyFoods() {
                     <p className="flex items-center gap-2 truncate text-sm text-on-surface-variant">
                       {food.brand ? `${food.brand} • ` : ''}
                       {food.serving_amount} {food.serving_unit}
-                      {food.source === 'openfoodfacts' && <SourceTag />}
+                      {food.source !== 'custom' && <SourceTag source={food.source} />}
                     </p>
                   </div>
                 </div>
@@ -145,13 +145,24 @@ export default function MyFoods() {
                       <span className="text-xs font-normal text-on-surface-variant">{m.label[0]}</span>
                     </span>
                   ))}
-                  <button
-                    onClick={() => handleDelete(food)}
-                    className="rounded-full p-1 text-on-surface-variant opacity-0 transition-all hover:text-error group-hover:opacity-100"
-                    aria-label={`Delete ${food.name}`}
-                  >
-                    <Icon name="delete" className="text-[20px]" />
-                  </button>
+                  <div className="flex items-center opacity-0 transition-all group-hover:opacity-100">
+                    {food.is_custom && (
+                      <Link
+                        to={`/foods/${food.id}/edit`}
+                        className="rounded-full p-1 text-on-surface-variant transition-colors hover:text-primary"
+                        aria-label={`Edit ${food.name}`}
+                      >
+                        <Icon name="edit" className="text-[20px]" />
+                      </Link>
+                    )}
+                    <button
+                      onClick={() => handleDelete(food)}
+                      className="rounded-full p-1 text-on-surface-variant transition-colors hover:text-error"
+                      aria-label={`Delete ${food.name}`}
+                    >
+                      <Icon name="delete" className="text-[20px]" />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}

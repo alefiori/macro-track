@@ -1,17 +1,19 @@
-import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import { Icon } from '@/components/ui/Icon'
-import { Spinner } from '@/components/ui/Spinner'
+import { Spinner, LoadingBlock } from '@/components/ui/Spinner'
 import { useAppShell } from '@/context/AppShellContext'
 import { MACROS, SERVING_UNITS, MEALS, type MealKey } from '@/lib/constants'
 import { calories } from '@/lib/macros'
-import { createCustomFood, logFoodEntry } from '@/lib/foods'
+import { createCustomFood, getFood, logFoodEntry, updateCustomFood } from '@/lib/foods'
 
 const fieldClass =
   'w-full min-h-[48px] rounded-lg border border-outline-variant bg-surface-bright px-4 py-3 font-body-md text-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors'
 
 export default function CreateCustomFood() {
   const navigate = useNavigate()
+  const { id } = useParams<{ id?: string }>()
+  const isEdit = Boolean(id)
   const { selectedDate, bumpFoodLogVersion } = useAppShell()
 
   const [name, setName] = useState('')
@@ -22,8 +24,39 @@ export default function CreateCustomFood() {
   const [fats, setFats] = useState('0')
   const [meal, setMeal] = useState<MealKey>('breakfast')
 
+  const [loading, setLoading] = useState(isEdit)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Edit mode: load the existing custom food and prefill the form.
+  useEffect(() => {
+    if (!id) return
+    let cancelled = false
+    setLoading(true)
+    setLoadError(null)
+    getFood(id)
+      .then((food) => {
+        if (cancelled) return
+        if (!food) {
+          setLoadError('Food not found.')
+        } else if (!food.is_custom) {
+          setLoadError('Only custom foods can be edited.')
+        } else {
+          setName(food.name)
+          setServingAmount(String(food.serving_amount))
+          setServingUnit(food.serving_unit)
+          setCarbs(String(food.carbs_g))
+          setProtein(String(food.protein_g))
+          setFats(String(food.fats_g))
+        }
+      })
+      .catch((err) => !cancelled && setLoadError(err instanceof Error ? err.message : 'Could not load food.'))
+      .finally(() => !cancelled && setLoading(false))
+    return () => {
+      cancelled = true
+    }
+  }, [id])
 
   const macros = useMemo(
     () => ({
@@ -52,14 +85,15 @@ export default function CreateCustomFood() {
     setBusy(true)
     setError(null)
     try {
-      const food = await createCustomFood({
+      const payload = {
         name: name.trim(),
         serving_amount: parseFloat(servingAmount),
         serving_unit: servingUnit,
         carbs_g: macros.carbs_g,
         protein_g: macros.protein_g,
         fats_g: macros.fats_g,
-      })
+      }
+      const food = isEdit ? await updateCustomFood(id!, payload) : await createCustomFood(payload)
       if (addToday) {
         await logFoodEntry({ foodId: food.id, date: selectedDate, meal, servings: 1 })
         bumpFoodLogVersion()
@@ -85,10 +119,25 @@ export default function CreateCustomFood() {
           <Icon name="arrow_back" className="text-on-surface-variant" />
         </button>
         <h1 className="font-headline-lg-mobile text-headline-lg-mobile font-bold text-on-surface md:font-headline-lg md:text-headline-lg">
-          Create Custom Food
+          {isEdit ? 'Edit Custom Food' : 'Create Custom Food'}
         </h1>
       </div>
 
+      {loading ? (
+        <LoadingBlock label="Loading food…" />
+      ) : loadError ? (
+        <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-md rounded-2xl bg-surface-container-lowest p-lg text-center shadow-card">
+          <p className="rounded-lg bg-error-container px-md py-sm font-label-md text-label-md text-on-error-container">
+            {loadError}
+          </p>
+          <button
+            onClick={() => navigate('/foods')}
+            className="rounded-full bg-primary-container/10 px-4 py-2 font-label-md text-label-md text-primary transition-colors hover:bg-primary-container/20"
+          >
+            Back to My Foods
+          </button>
+        </div>
+      ) : (
       <div className="mx-auto w-full max-w-2xl rounded-2xl bg-surface-container-lowest p-5 shadow-card md:p-[20px]">
         <form className="flex flex-col gap-lg" onSubmit={(e) => e.preventDefault()}>
           {error && (
@@ -227,7 +276,7 @@ export default function CreateCustomFood() {
               className="flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-full bg-primary font-label-md text-label-md font-semibold text-on-primary shadow-sm transition-all hover:bg-on-primary-fixed-variant hover:shadow-md active:scale-95 disabled:opacity-60"
             >
               {busy ? <Spinner className="h-4 w-4" /> : <Icon name="save" className="text-[20px]" />}
-              Save Food
+              {isEdit ? 'Save Changes' : 'Save Food'}
             </button>
             <button
               type="button"
@@ -241,6 +290,7 @@ export default function CreateCustomFood() {
           </div>
         </form>
       </div>
+      )}
     </div>
   )
 }

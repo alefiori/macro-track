@@ -40,7 +40,7 @@ export function Modal({
         if (e.target === e.currentTarget) onClose()
       }}
     >
-      <div className="flex h-full w-full flex-col overflow-hidden bg-surface-container-lowest shadow-card sm:h-auto sm:max-h-[90vh] sm:max-w-5xl sm:rounded-2xl">
+      <div className="flex h-full w-full flex-col overflow-hidden bg-surface-container-lowest shadow-card sm:h-[90vh] sm:max-w-5xl sm:rounded-2xl">
         {children}
       </div>
     </div>
