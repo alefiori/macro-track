@@ -1,14 +1,21 @@
-import { useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Modal } from '@/components/ui/Modal'
 import { Icon } from '@/components/ui/Icon'
 import { Spinner } from '@/components/ui/Spinner'
 import { SourceTag } from '@/components/ui/SourceTag'
+
+// Lazy-loaded so the barcode-scanning library (ZXing) stays out of the initial
+// bundle and is only fetched when the user actually opens the scanner.
+const BarcodeScanner = lazy(() =>
+  import('@/components/addfood/BarcodeScanner').then((m) => ({ default: m.BarcodeScanner })),
+)
 import { useFoodSearch, type SearchResult } from '@/hooks/useFoodSearch'
 import { useAppShell } from '@/context/AppShellContext'
 import { MACROS, MEALS, type MealKey } from '@/lib/constants'
 import { calories, caloriesForServings, scaleMacros, round, type MacroGrams } from '@/lib/macros'
-import { logFoodEntry, upsertExternalFood } from '@/lib/foods'
+import { logFoodEntry, upsertExternalFood, type CustomFoodPrefill } from '@/lib/foods'
+import { lookupBarcode } from '@/lib/openfoodfacts'
 import { formatLong } from '@/lib/date'
 import { SOURCE_ICONS } from '@/lib/foodSources'
 import type { FoodSource } from '@/lib/database.types'
@@ -49,6 +56,9 @@ export function AddFoodModal({
   const [servings, setServings] = useState(1)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [scanning, setScanning] = useState(false)
+  const [lookingUp, setLookingUp] = useState(false)
+  const [lookupMsg, setLookupMsg] = useState<string | null>(null)
 
   const { results, loading, error: searchError } = useFoodSearch(query)
 
@@ -60,6 +70,9 @@ export function AddFoodModal({
       setMeal(initialMeal ?? 'breakfast')
       setServings(1)
       setError(null)
+      setScanning(false)
+      setLookingUp(false)
+      setLookupMsg(null)
     }
   }, [open, initialMeal])
 
@@ -89,14 +102,67 @@ export function AddFoodModal({
     }
   }
 
-  function goCreateCustom() {
+  // Look up a scanned barcode and surface it exactly like a normal external
+  // search result (so adding it runs the same upsertExternalFood path).
+  const handleScanned = useCallback(async (code: string) => {
+    setScanning(false)
+    setLookupMsg(null)
+    setLookingUp(true)
+    try {
+      const food = await lookupBarcode(code)
+      if (food) {
+        setSelected({
+          kind: 'external',
+          id: `ext:${food.source}:${food.externalId}`,
+          food,
+        })
+        setServings(1)
+      } else {
+        setLookupMsg(`No product found for barcode ${code}. You can create a custom food manually.`)
+      }
+    } catch (err) {
+      setLookupMsg(err instanceof Error ? err.message : 'Barcode lookup failed. Please try again.')
+    } finally {
+      setLookingUp(false)
+    }
+  }, [])
+
+  function goCreateCustom(prefill?: CustomFoodPrefill) {
     onClose()
-    navigate('/foods/new')
+    navigate('/foods/new', prefill ? { state: { prefill } } : undefined)
+  }
+
+  // Copy the selected API food into the custom-food form (create mode). The
+  // original API/global row is never mutated — saving always inserts a new
+  // custom food via createCustomFood().
+  function goEditAsCustom() {
+    if (!selected || selected.kind !== 'external') return
+    const f = selected.food
+    goCreateCustom({
+      name: f.name,
+      brand: f.brand,
+      serving_amount: f.serving_amount,
+      serving_unit: f.serving_unit,
+      carbs_g: f.carbs_g,
+      protein_g: f.protein_g,
+      fats_g: f.fats_g,
+    })
   }
 
   return (
     <Modal open={open} onClose={onClose} labelledBy="add-food-title">
-      <div className="flex h-full flex-col lg:flex-row">
+      <div className="relative flex h-full flex-col lg:flex-row">
+        {scanning && (
+          <Suspense
+            fallback={
+              <div className="absolute inset-0 z-[70] flex items-center justify-center bg-black text-white">
+                <Spinner className="h-6 w-6" />
+              </div>
+            }
+          >
+            <BarcodeScanner onDetected={handleScanned} onClose={() => setScanning(false)} />
+          </Suspense>
+        )}
         {/* Search + results column — hidden on mobile once a food is selected */}
         <section
           className={`min-h-0 flex-1 flex-col border-surface-variant lg:flex lg:border-r ${
@@ -132,6 +198,17 @@ export function AddFoodModal({
               />
               {loading && <Spinner className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary" />}
             </div>
+
+            <button
+              onClick={() => {
+                setLookupMsg(null)
+                setScanning(true)
+              }}
+              className="mt-sm flex w-full items-center justify-center gap-2 rounded-lg border border-outline-variant bg-surface-container-low py-3 font-label-md text-label-md text-on-surface transition-colors hover:bg-surface-container-high"
+            >
+              <Icon name="barcode_scanner" />
+              Scan barcode
+            </button>
           </div>
 
           <div className="min-h-0 flex-1 overflow-y-auto px-md pb-md">
@@ -139,6 +216,28 @@ export function AddFoodModal({
               <p className="rounded-lg bg-error-container px-md py-sm font-label-md text-label-md text-on-error-container">
                 {searchError}
               </p>
+            )}
+
+            {lookingUp && (
+              <div className="flex items-center justify-center gap-sm py-lg text-on-surface-variant">
+                <Spinner className="h-4 w-4 text-primary" />
+                <span className="font-body-md text-body-md">Looking up barcode…</span>
+              </div>
+            )}
+
+            {lookupMsg && (
+              <div className="mb-md flex flex-col items-start gap-sm rounded-lg bg-surface-container-low px-md py-sm">
+                <p className="flex items-center gap-2 font-label-md text-label-md text-on-surface">
+                  <Icon name="info" className="text-secondary" />
+                  {lookupMsg}
+                </p>
+                <button
+                  onClick={() => goCreateCustom()}
+                  className="rounded-full bg-primary-container/10 px-4 py-2 font-label-md text-label-md text-primary transition-colors hover:bg-primary-container/20"
+                >
+                  Create custom food
+                </button>
+              </div>
             )}
 
             {!query.trim() && (
@@ -179,6 +278,7 @@ export function AddFoodModal({
                     onClick={() => {
                       setSelected(r)
                       setServings(1)
+                      setLookupMsg(null)
                     }}
                     className={`flex items-center justify-between gap-sm rounded-xl border p-md text-left transition-colors ${
                       isSelected
@@ -226,7 +326,7 @@ export function AddFoodModal({
 
           <div className="border-t border-surface-variant p-md">
             <button
-              onClick={goCreateCustom}
+              onClick={() => goCreateCustom()}
               className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#F0FDFA] py-3 font-label-md text-label-md text-primary transition-colors hover:bg-surface-container-high"
             >
               <Icon name="add_circle" />
@@ -363,6 +463,17 @@ export function AddFoodModal({
                     </>
                   )}
                 </button>
+
+                {selected?.kind === 'external' && (
+                  <button
+                    onClick={goEditAsCustom}
+                    disabled={saving}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl border border-outline-variant py-3 font-label-md text-label-md text-on-surface transition-colors hover:bg-surface-container-high disabled:opacity-60"
+                  >
+                    <Icon name="edit" />
+                    Edit &amp; save as custom
+                  </button>
+                )}
               </div>
             </>
           )}

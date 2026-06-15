@@ -6,8 +6,21 @@ import { LoadingBlock } from '@/components/ui/Spinner'
 import { SourceTag } from '@/components/ui/SourceTag'
 import { MACROS } from '@/lib/constants'
 import { calories, round } from '@/lib/macros'
-import { deleteFood } from '@/lib/foods'
+import { deleteFood, type CustomFoodPrefill } from '@/lib/foods'
 import type { Food } from '@/lib/database.types'
+
+/** Map an imported API food into prefill values for a brand-new custom copy. */
+function toPrefill(food: Food): CustomFoodPrefill {
+  return {
+    name: food.name,
+    brand: food.brand,
+    serving_amount: food.serving_amount,
+    serving_unit: food.serving_unit,
+    carbs_g: food.carbs_g,
+    protein_g: food.protein_g,
+    fats_g: food.fats_g,
+  }
+}
 
 export default function MyFoods() {
   const [foods, setFoods] = useState<Food[]>([])
@@ -146,11 +159,22 @@ export default function MyFoods() {
                     </span>
                   ))}
                   <div className="flex items-center opacity-0 transition-all group-hover:opacity-100">
-                    {food.is_custom && (
+                    {food.is_custom ? (
                       <Link
                         to={`/foods/${food.id}/edit`}
                         className="rounded-full p-1 text-on-surface-variant transition-colors hover:text-primary"
                         aria-label={`Edit ${food.name}`}
+                      >
+                        <Icon name="edit" className="text-[20px]" />
+                      </Link>
+                    ) : (
+                      // API foods are never edited in place — copy into a new custom food.
+                      <Link
+                        to="/foods/new"
+                        state={{ prefill: toPrefill(food) }}
+                        className="rounded-full p-1 text-on-surface-variant transition-colors hover:text-primary"
+                        aria-label={`Edit ${food.name} and save as a custom food`}
+                        title="Edit & save as custom"
                       >
                         <Icon name="edit" className="text-[20px]" />
                       </Link>

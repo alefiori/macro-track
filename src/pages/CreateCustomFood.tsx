@@ -1,27 +1,42 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Icon } from '@/components/ui/Icon'
 import { Spinner, LoadingBlock } from '@/components/ui/Spinner'
 import { useAppShell } from '@/context/AppShellContext'
 import { MACROS, SERVING_UNITS, MEALS, type MealKey } from '@/lib/constants'
 import { calories } from '@/lib/macros'
-import { createCustomFood, getFood, logFoodEntry, updateCustomFood } from '@/lib/foods'
+import {
+  createCustomFood,
+  getFood,
+  logFoodEntry,
+  updateCustomFood,
+  type CustomFoodPrefill,
+} from '@/lib/foods'
 
 const fieldClass =
   'w-full min-h-[48px] rounded-lg border border-outline-variant bg-surface-bright px-4 py-3 font-body-md text-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors'
 
 export default function CreateCustomFood() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { id } = useParams<{ id?: string }>()
   const isEdit = Boolean(id)
   const { selectedDate, bumpFoodLogVersion } = useAppShell()
 
-  const [name, setName] = useState('')
-  const [servingAmount, setServingAmount] = useState('1')
-  const [servingUnit, setServingUnit] = useState('g')
-  const [carbs, setCarbs] = useState('0')
-  const [protein, setProtein] = useState('0')
-  const [fats, setFats] = useState('0')
+  // When arriving from "Edit & save as custom" on an API food, the source
+  // values ride along in router state. Create-mode only — saving always makes a
+  // fresh custom row and never touches the original API/global food.
+  const prefill = (location.state as { prefill?: CustomFoodPrefill } | null)?.prefill
+
+  const [name, setName] = useState(prefill?.name ?? '')
+  const [brand, setBrand] = useState(prefill?.brand ?? '')
+  const [servingAmount, setServingAmount] = useState(
+    prefill ? String(prefill.serving_amount) : '1',
+  )
+  const [servingUnit, setServingUnit] = useState(prefill?.serving_unit ?? 'g')
+  const [carbs, setCarbs] = useState(prefill ? String(prefill.carbs_g) : '0')
+  const [protein, setProtein] = useState(prefill ? String(prefill.protein_g) : '0')
+  const [fats, setFats] = useState(prefill ? String(prefill.fats_g) : '0')
   const [meal, setMeal] = useState<MealKey>('breakfast')
 
   const [loading, setLoading] = useState(isEdit)
@@ -44,6 +59,7 @@ export default function CreateCustomFood() {
           setLoadError('Only custom foods can be edited.')
         } else {
           setName(food.name)
+          setBrand(food.brand ?? '')
           setServingAmount(String(food.serving_amount))
           setServingUnit(food.serving_unit)
           setCarbs(String(food.carbs_g))
@@ -87,6 +103,7 @@ export default function CreateCustomFood() {
     try {
       const payload = {
         name: name.trim(),
+        brand: brand.trim() || null,
         serving_amount: parseFloat(servingAmount),
         serving_unit: servingUnit,
         carbs_g: macros.carbs_g,
@@ -159,6 +176,19 @@ export default function CreateCustomFood() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g., Homemade Almond Butter"
+                className={fieldClass}
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="font-label-md text-label-md text-on-surface-variant" htmlFor="foodBrand">
+                Brand <span className="text-outline">(optional)</span>
+              </label>
+              <input
+                id="foodBrand"
+                type="text"
+                value={brand}
+                onChange={(e) => setBrand(e.target.value)}
+                placeholder="e.g., Acme Foods"
                 className={fieldClass}
               />
             </div>

@@ -67,6 +67,14 @@ export interface NewCustomFood {
   fats_g: number
 }
 
+/**
+ * Values used to prefill the custom-food form — e.g. when copying an existing
+ * API food (Open Food Facts / USDA) into a brand-new custom food. Carries the
+ * same shape as a new custom food; the form always saves it via
+ * {@link createCustomFood}, never mutating the source row.
+ */
+export type CustomFoodPrefill = NewCustomFood
+
 /** Fetch a single food by id (RLS limits this to own + global rows). */
 export async function getFood(id: string): Promise<Food | null> {
   const { data, error } = await supabase.from('foods').select('*').eq('id', id).maybeSingle()
