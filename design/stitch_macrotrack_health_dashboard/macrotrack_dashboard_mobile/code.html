@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MacroTrack Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-container": "#008378",
+                        "outline": "#6d7a77",
+                        "secondary-fixed": "#e0e3e5",
+                        "on-tertiary-fixed-variant": "#404758",
+                        "surface": "#f8f9ff",
+                        "primary-fixed": "#89f5e7",
+                        "on-primary": "#ffffff",
+                        "secondary": "#5c5f61",
+                        "on-tertiary": "#ffffff",
+                        "primary": "#00685f",
+                        "on-tertiary-fixed": "#141b2b",
+                        "surface-tint": "#006a61",
+                        "surface-dim": "#cbdbf5",
+                        "tertiary-fixed-dim": "#c0c6db",
+                        "on-secondary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "secondary-fixed-dim": "#c4c7c9",
+                        "on-secondary-container": "#626567",
+                        "surface-variant": "#d3e4fe",
+                        "surface-container-highest": "#d3e4fe",
+                        "on-surface-variant": "#3d4947",
+                        "on-error": "#ffffff",
+                        "on-surface": "#0b1c30",
+                        "on-secondary-fixed": "#191c1e",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container": "#e5eeff",
+                        "outline-variant": "#bcc9c6",
+                        "error-container": "#ffdad6",
+                        "tertiary": "#555c6e",
+                        "surface-bright": "#f8f9ff",
+                        "secondary-container": "#e0e3e5",
+                        "inverse-surface": "#213145",
+                        "tertiary-container": "#6e7487",
+                        "on-background": "#0b1c30",
+                        "surface-container-low": "#eff4ff",
+                        "on-primary-fixed": "#00201d",
+                        "inverse-primary": "#6bd8cb",
+                        "tertiary-fixed": "#dce2f7",
+                        "on-primary-container": "#f4fffc",
+                        "on-tertiary-container": "#fefcff",
+                        "primary-fixed-dim": "#6bd8cb",
+                        "on-secondary-fixed-variant": "#444749",
+                        "inverse-on-surface": "#eaf1ff",
+                        "error": "#ba1a1a",
+                        "background": "#f8f9ff",
+                        "surface-container-high": "#dce9ff",
+                        "on-primary-fixed-variant": "#005049"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "lg": "24px",
+                        "gutter": "16px",
+                        "container-margin-mobile": "16px",
+                        "md": "16px",
+                        "sm": "8px",
+                        "2xl": "48px",
+                        "container-margin-desktop": "40px",
+                        "xs": "4px",
+                        "xl": "32px",
+                        "base": "4px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Manrope"],
+                        "body-md": ["Manrope"],
+                        "headline-md": ["Manrope"],
+                        "label-md": ["Manrope"],
+                        "headline-lg": ["Manrope"],
+                        "data-display": ["Manrope"],
+                        "body-lg": ["Manrope"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "data-display": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.03em", "fontWeight": "800" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .tap-highlight-transparent { -webkit-tap-highlight-color: transparent; }
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+        .progress-ring__circle { transition: stroke-dashoffset 0.35s; transform: rotate(-90deg); transform-origin: 50% 50%; }
+        body { background-color: #F1F5F9; } /* Level 0 background */
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-[#F1F5F9] text-on-background antialiased pb-[80px]">
+<!-- TopAppBar -->
+<header class="w-full sticky top-0 bg-background flex justify-between items-center px-container-margin-mobile py-sm z-40">
+<div class="flex items-center gap-2 cursor-pointer active:scale-95 transition-transform text-primary hover:bg-surface-container-low p-2 rounded-full">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">monitoring</span>
+</div>
+<div class="font-headline-md text-headline-md font-bold text-primary">MacroTrack</div>
+<div class="flex items-center gap-2 cursor-pointer active:scale-95 transition-transform text-primary hover:bg-surface-container-low p-2 rounded-full">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">notifications</span>
+</div>
+</header>
+<main class="w-full max-w-[1200px] mx-auto flex flex-col md:flex-row gap-lg">
+<!-- Main Content Area -->
+<div class="flex-1 px-container-margin-mobile pt-sm flex flex-col gap-lg">
+<!-- Date Selector -->
+<section class="flex justify-between items-center bg-surface-container-lowest rounded-xl p-sm shadow-[0px_4px_20px_rgba(0,0,0,0.04)]">
+<button class="p-2 text-secondary hover:bg-surface-variant rounded-full transition-colors active:scale-95">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<div class="text-center">
+<h2 class="font-label-md text-label-md text-secondary uppercase">Today</h2>
+<p class="font-headline-md text-headline-md text-on-surface font-bold">Oct 24, 2023</p>
+</div>
+<button class="p-2 text-secondary hover:bg-surface-variant rounded-full transition-colors active:scale-95">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</section>
+<!-- Macro Rings -->
+<section class="bg-surface-container-lowest rounded-[24px] p-[20px] shadow-[0px_4px_20px_rgba(0,0,0,0.04)]">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-md">Daily Summary</h3>
+<div class="flex justify-around items-center">
+<!-- Carbs -->
+<div class="flex flex-col items-center">
+<div class="relative w-24 h-24">
+<svg class="w-full h-full" viewbox="0 0 100 100">
+<circle class="text-orange-100 stroke-current" cx="50" cy="50" fill="transparent" r="40" stroke-width="8"></circle>
+<circle class="text-orange-400 progress-ring__circle stroke-current" cx="50" cy="50" fill="transparent" r="40" stroke-dasharray="251.2" stroke-dashoffset="100.48" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="font-headline-md text-headline-md text-on-surface font-bold">150g</span>
+<span class="font-label-md text-label-md text-secondary">/250</span>
+</div>
+</div>
+<span class="font-label-md text-label-md text-on-surface-variant mt-sm">Carbs</span>
+</div>
+<!-- Protein -->
+<div class="flex flex-col items-center">
+<div class="relative w-24 h-24">
+<svg class="w-full h-full" viewbox="0 0 100 100">
+<circle class="text-blue-100 stroke-current" cx="50" cy="50" fill="transparent" r="40" stroke-width="8"></circle>
+<circle class="text-blue-500 progress-ring__circle stroke-current" cx="50" cy="50" fill="transparent" r="40" stroke-dasharray="251.2" stroke-dashoffset="50.24" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="font-headline-md text-headline-md text-on-surface font-bold">180g</span>
+<span class="font-label-md text-label-md text-secondary">/200</span>
+</div>
+</div>
+<span class="font-label-md text-label-md text-on-surface-variant mt-sm">Protein</span>
+</div>
+<!-- Fats -->
+<div class="flex flex-col items-center">
+<div class="relative w-24 h-24">
+<svg class="w-full h-full" viewbox="0 0 100 100">
+<circle class="text-purple-100 stroke-current" cx="50" cy="50" fill="transparent" r="40" stroke-width="8"></circle>
+<circle class="text-purple-400 progress-ring__circle stroke-current" cx="50" cy="50" fill="transparent" r="40" stroke-dasharray="251.2" stroke-dashoffset="150.72" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="font-headline-md text-headline-md text-on-surface font-bold">45g</span>
+<span class="font-label-md text-label-md text-secondary">/65</span>
+</div>
+</div>
+<span class="font-label-md text-label-md text-on-surface-variant mt-sm">Fats</span>
+</div>
+</div>
+</section>
+<!-- Food Log -->
+<section class="flex flex-col gap-md">
+<!-- Breakfast Card -->
+<div class="bg-surface-container-lowest rounded-[24px] p-[20px] shadow-[0px_4px_20px_rgba(0,0,0,0.04)]">
+<div class="flex justify-between items-center mb-md border-b border-surface-container pb-sm">
+<h3 class="font-headline-md text-headline-md text-on-surface">Breakfast</h3>
+<span class="font-label-md text-label-md text-secondary">450 kcal</span>
+</div>
+<div class="flex flex-col gap-sm">
+<!-- Item -->
+<div class="flex justify-between items-center py-2">
+<div class="flex items-center gap-sm">
+<div class="w-2 h-2 rounded-full bg-blue-500"></div>
+<div>
+<p class="font-body-md text-body-md text-on-surface font-semibold">Greek Yogurt</p>
+<p class="font-label-md text-label-md text-secondary">1 cup (200g)</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-body-md text-body-md text-on-surface">20P • 8C • 0F</p>
+</div>
+</div>
+<!-- Item -->
+<div class="flex justify-between items-center py-2">
+<div class="flex items-center gap-sm">
+<div class="w-2 h-2 rounded-full bg-orange-400"></div>
+<div>
+<p class="font-body-md text-body-md text-on-surface font-semibold">Oats</p>
+<p class="font-label-md text-label-md text-secondary">0.5 cup (40g)</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-body-md text-body-md text-on-surface">5P • 27C • 3F</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Lunch Card -->
+<div class="bg-surface-container-lowest rounded-[24px] p-[20px] shadow-[0px_4px_20px_rgba(0,0,0,0.04)]">
+<div class="flex justify-between items-center mb-md border-b border-surface-container pb-sm">
+<h3 class="font-headline-md text-headline-md text-on-surface">Lunch</h3>
+<span class="font-label-md text-label-md text-secondary">620 kcal</span>
+</div>
+<div class="flex flex-col gap-sm">
+<!-- Item -->
+<div class="flex justify-between items-center py-2">
+<div class="flex items-center gap-sm">
+<div class="w-2 h-2 rounded-full bg-blue-500"></div>
+<div>
+<p class="font-body-md text-body-md text-on-surface font-semibold">Chicken Breast</p>
+<p class="font-label-md text-label-md text-secondary">6 oz (170g)</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-body-md text-body-md text-on-surface">52P • 0C • 6F</p>
+</div>
+</div>
+<!-- Item -->
+<div class="flex justify-between items-center py-2">
+<div class="flex items-center gap-sm">
+<div class="w-2 h-2 rounded-full bg-orange-400"></div>
+<div>
+<p class="font-body-md text-body-md text-on-surface font-semibold">Jasmine Rice</p>
+<p class="font-label-md text-label-md text-secondary">1 cup (158g)</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-body-md text-body-md text-on-surface">4P • 45C • 0F</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- FAB -->
+<button class="fixed bottom-[96px] right-container-margin-mobile bg-primary text-on-primary w-14 h-14 rounded-2xl shadow-lg flex items-center justify-center active:scale-95 transition-transform hover:shadow-xl z-50">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">add</span>
+</button>
+<!-- BottomNavBar -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 pb-safe bg-surface shadow-[0px_-4px_20px_rgba(0,0,0,0.04)] rounded-t-xl">
+<div class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1 tap-highlight-transparent active:scale-95 duration-200 cursor-pointer">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md mt-1">Dashboard</span>
+</div>
+<div class="flex flex-col items-center justify-center text-secondary px-4 py-1 hover:bg-surface-variant transition-colors rounded-full tap-highlight-transparent active:scale-95 duration-200 cursor-pointer">
+<span class="material-symbols-outlined">track_changes</span>
+<span class="font-label-md text-label-md mt-1">Targets</span>
+</div>
+<div class="flex flex-col items-center justify-center text-secondary px-4 py-1 hover:bg-surface-variant transition-colors rounded-full tap-highlight-transparent active:scale-95 duration-200 cursor-pointer">
+<span class="material-symbols-outlined">restaurant</span>
+<span class="font-label-md text-label-md mt-1">Foods</span>
+</div>
+<div class="flex flex-col items-center justify-center text-secondary px-4 py-1 hover:bg-surface-variant transition-colors rounded-full tap-highlight-transparent active:scale-95 duration-200 cursor-pointer">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-md text-label-md mt-1">Profile</span>
+</div>
+</nav>
+</body></html>

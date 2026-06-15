@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MacroTrack - Weekly Targets</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-container": "#008378",
+                        "outline": "#6d7a77",
+                        "secondary-fixed": "#e0e3e5",
+                        "on-tertiary-fixed-variant": "#404758",
+                        "surface": "#f8f9ff",
+                        "primary-fixed": "#89f5e7",
+                        "on-primary": "#ffffff",
+                        "secondary": "#5c5f61",
+                        "on-tertiary": "#ffffff",
+                        "primary": "#00685f",
+                        "on-tertiary-fixed": "#141b2b",
+                        "surface-tint": "#006a61",
+                        "surface-dim": "#cbdbf5",
+                        "tertiary-fixed-dim": "#c0c6db",
+                        "on-secondary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "secondary-fixed-dim": "#c4c7c9",
+                        "on-secondary-container": "#626567",
+                        "surface-variant": "#d3e4fe",
+                        "surface-container-highest": "#d3e4fe",
+                        "on-surface-variant": "#3d4947",
+                        "on-error": "#ffffff",
+                        "on-surface": "#0b1c30",
+                        "on-secondary-fixed": "#191c1e",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container": "#e5eeff",
+                        "outline-variant": "#bcc9c6",
+                        "error-container": "#ffdad6",
+                        "tertiary": "#555c6e",
+                        "surface-bright": "#f8f9ff",
+                        "secondary-container": "#e0e3e5",
+                        "inverse-surface": "#213145",
+                        "tertiary-container": "#6e7487",
+                        "on-background": "#0b1c30",
+                        "surface-container-low": "#eff4ff",
+                        "on-primary-fixed": "#00201d",
+                        "inverse-primary": "#6bd8cb",
+                        "tertiary-fixed": "#dce2f7",
+                        "on-primary-container": "#f4fffc",
+                        "on-tertiary-container": "#fefcff",
+                        "primary-fixed-dim": "#6bd8cb",
+                        "on-secondary-fixed-variant": "#444749",
+                        "inverse-on-surface": "#eaf1ff",
+                        "error": "#ba1a1a",
+                        "background": "#f8f9ff",
+                        "surface-container-high": "#dce9ff",
+                        "on-primary-fixed-variant": "#005049"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "lg": "24px",
+                        "gutter": "16px",
+                        "container-margin-mobile": "16px",
+                        "md": "16px",
+                        "sm": "8px",
+                        "2xl": "48px",
+                        "container-margin-desktop": "40px",
+                        "xs": "4px",
+                        "xl": "32px",
+                        "base": "4px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Manrope"],
+                        "body-md": ["Manrope"],
+                        "headline-md": ["Manrope"],
+                        "label-md": ["Manrope"],
+                        "headline-lg": ["Manrope"],
+                        "data-display": ["Manrope"],
+                        "body-lg": ["Manrope"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "data-display": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.03em", "fontWeight": "800"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        /* Ambient shadows and transitions */
+        .ambient-shadow {
+            box-shadow: 0px 4px 20px rgba(0,0,0,0.04);
+        }
+        .pb-safe {
+            padding-bottom: env(safe-area-inset-bottom, 16px);
+        }
+        .tap-highlight-transparent {
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* Smooth expansion for cards */
+        .expandable-content {
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows 0.3s ease-out;
+        }
+        .expandable-content.expanded {
+            grid-template-rows: 1fr;
+        }
+        .expandable-inner {
+            overflow: hidden;
+        }
+        .chevron-icon {
+            transition: transform 0.3s ease;
+        }
+        .expanded .chevron-icon {
+            transform: rotate(180deg);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen pb-[100px] flex flex-col md:flex-row font-body-md">
+<!-- Desktop Sidebar (Hidden on Mobile) -->
+<aside class="hidden md:flex flex-col w-[280px] bg-surface-container-low h-screen sticky top-0 p-container-margin-desktop border-r border-outline-variant">
+<div class="font-headline-lg text-headline-lg font-bold text-primary mb-2xl">MacroTrack</div>
+<nav class="flex flex-col gap-sm">
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-secondary hover:bg-surface-variant transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg bg-primary-container text-on-primary-container font-bold" href="#">
+<span class="material-symbols-outlined">track_changes</span>
+<span class="font-label-md text-label-md">Targets</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-secondary hover:bg-surface-variant transition-colors" href="#">
+<span class="material-symbols-outlined">restaurant</span>
+<span class="font-label-md text-label-md">Foods</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-secondary hover:bg-surface-variant transition-colors" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-md text-label-md">Profile</span>
+</a>
+</nav>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 w-full max-w-[1200px] mx-auto md:px-container-margin-desktop">
+<!-- TopAppBar (Shared Component) -->
+<header class="w-full sticky top-0 bg-background z-40 flex justify-between items-center px-container-margin-mobile py-sm md:hidden">
+<div class="flex items-center gap-sm cursor-pointer active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-primary text-[24px]">monitoring</span>
+<span class="font-headline-md text-headline-md font-bold text-primary">MacroTrack</span>
+</div>
+<div class="cursor-pointer active:scale-95 transition-transform p-xs">
+<span class="material-symbols-outlined text-primary text-[24px]">notifications</span>
+</div>
+</header>
+<!-- Page Content -->
+<div class="px-container-margin-mobile py-lg md:py-2xl flex flex-col gap-lg max-w-[600px] mx-auto">
+<!-- Page Header & Actions -->
+<div class="flex flex-col gap-sm mb-sm">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg text-on-surface">Weekly Targets</h1>
+<p class="font-body-md text-body-md text-secondary">Set your daily macro goals.</p>
+</div>
+<!-- Shortcut Action -->
+<button class="flex items-center justify-center gap-sm bg-surface-container-high text-primary font-label-md text-label-md px-md py-sm rounded-full hover:bg-surface-variant transition-colors active:scale-95 w-max">
+<span class="material-symbols-outlined text-[18px]">content_copy</span>
+                Copy Mon to All
+            </button>
+<!-- Days List -->
+<div class="flex flex-col gap-md mt-sm" id="days-container">
+<!-- Monday (Expanded by default) -->
+<div class="bg-surface rounded-xl ambient-shadow overflow-hidden card-container">
+<!-- Header -->
+<div class="flex items-center justify-between p-md cursor-pointer tap-highlight-transparent toggle-card">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-label-md text-label-md font-bold">
+                                M
+                            </div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Monday</h3>
+<p class="font-body-md text-body-md text-secondary text-sm">2,150 kcal</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-secondary chevron-icon">expand_more</span>
+</div>
+<!-- Expandable Content -->
+<div class="expandable-content expanded">
+<div class="expandable-inner px-md pb-md">
+<div class="border-t border-surface-container-highest pt-md flex flex-col gap-md">
+<!-- Carbs Input -->
+<div class="flex flex-col gap-xs">
+<label class="font-label-md text-label-md text-on-surface-variant flex items-center gap-xs">
+<span class="w-3 h-3 rounded-full bg-[#4ADE80]"></span> Carbs (g)
+                                    </label>
+<div class="relative">
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-md py-sm font-body-md text-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary transition-colors outline-none h-[48px]" placeholder="0" type="number" value="250"/>
+<span class="absolute right-md top-1/2 -translate-y-1/2 text-secondary font-body-md text-body-md">1,000 kcal</span>
+</div>
+</div>
+<!-- Protein Input -->
+<div class="flex flex-col gap-xs">
+<label class="font-label-md text-label-md text-on-surface-variant flex items-center gap-xs">
+<span class="w-3 h-3 rounded-full bg-[#60A5FA]"></span> Protein (g)
+                                    </label>
+<div class="relative">
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-md py-sm font-body-md text-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary transition-colors outline-none h-[48px]" placeholder="0" type="number" value="160"/>
+<span class="absolute right-md top-1/2 -translate-y-1/2 text-secondary font-body-md text-body-md">640 kcal</span>
+</div>
+</div>
+<!-- Fats Input -->
+<div class="flex flex-col gap-xs">
+<label class="font-label-md text-label-md text-on-surface-variant flex items-center gap-xs">
+<span class="w-3 h-3 rounded-full bg-[#FBBF24]"></span> Fats (g)
+                                    </label>
+<div class="relative">
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-md py-sm font-body-md text-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary transition-colors outline-none h-[48px]" placeholder="0" type="number" value="55"/>
+<span class="absolute right-md top-1/2 -translate-y-1/2 text-secondary font-body-md text-body-md">495 kcal</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Tuesday (Collapsed) -->
+<div class="bg-surface rounded-xl ambient-shadow overflow-hidden card-container">
+<div class="flex items-center justify-between p-md cursor-pointer tap-highlight-transparent toggle-card">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-surface-container-high text-on-surface flex items-center justify-center font-label-md text-label-md font-bold">
+                                T
+                            </div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Tuesday</h3>
+<p class="font-body-md text-body-md text-secondary text-sm">2,150 kcal</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-secondary chevron-icon">expand_more</span>
+</div>
+<div class="expandable-content">
+<div class="expandable-inner px-md pb-md">
+<div class="border-t border-surface-container-highest pt-md flex flex-col gap-md">
+<div class="flex flex-col gap-xs">
+<label class="font-label-md text-label-md text-on-surface-variant flex items-center gap-xs">
+<span class="w-3 h-3 rounded-full bg-[#4ADE80]"></span> Carbs (g)
+                                    </label>
+<div class="relative">
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-md py-sm font-body-md text-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary transition-colors outline-none h-[48px]" placeholder="0" type="number" value="250"/>
+</div>
+</div>
+<div class="flex flex-col gap-xs">
+<label class="font-label-md text-label-md text-on-surface-variant flex items-center gap-xs">
+<span class="w-3 h-3 rounded-full bg-[#60A5FA]"></span> Protein (g)
+                                    </label>
+<div class="relative">
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-md py-sm font-body-md text-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary transition-colors outline-none h-[48px]" placeholder="0" type="number" value="160"/>
+</div>
+</div>
+<div class="flex flex-col gap-xs">
+<label class="font-label-md text-label-md text-on-surface-variant flex items-center gap-xs">
+<span class="w-3 h-3 rounded-full bg-[#FBBF24]"></span> Fats (g)
+                                    </label>
+<div class="relative">
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-md py-sm font-body-md text-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary transition-colors outline-none h-[48px]" placeholder="0" type="number" value="55"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Wednesday (Collapsed) -->
+<div class="bg-surface rounded-xl ambient-shadow overflow-hidden card-container">
+<div class="flex items-center justify-between p-md cursor-pointer tap-highlight-transparent toggle-card">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-surface-container-high text-on-surface flex items-center justify-center font-label-md text-label-md font-bold">
+                                W
+                            </div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Wednesday</h3>
+<p class="font-body-md text-body-md text-secondary text-sm">2,150 kcal</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-secondary chevron-icon">expand_more</span>
+</div>
+<div class="expandable-content">
+<div class="expandable-inner px-md pb-md">
+<!-- content omitted for brevity, same as above -->
+<p class="text-secondary text-sm italic pt-md border-t border-surface-container-highest">Inputs hidden for brevity in this mockup.</p>
+</div>
+</div>
+</div>
+<!-- Thursday (Collapsed) -->
+<div class="bg-surface rounded-xl ambient-shadow overflow-hidden card-container">
+<div class="flex items-center justify-between p-md cursor-pointer tap-highlight-transparent toggle-card">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-surface-container-high text-on-surface flex items-center justify-center font-label-md text-label-md font-bold">
+                                T
+                            </div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Thursday</h3>
+<p class="font-body-md text-body-md text-secondary text-sm">2,150 kcal</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-secondary chevron-icon">expand_more</span>
+</div>
+<div class="expandable-content"><div class="expandable-inner px-md pb-md"></div></div>
+</div>
+<!-- Friday (Collapsed) -->
+<div class="bg-surface rounded-xl ambient-shadow overflow-hidden card-container">
+<div class="flex items-center justify-between p-md cursor-pointer tap-highlight-transparent toggle-card">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-surface-container-high text-on-surface flex items-center justify-center font-label-md text-label-md font-bold">
+                                F
+                            </div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Friday</h3>
+<p class="font-body-md text-body-md text-secondary text-sm">2,150 kcal</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-secondary chevron-icon">expand_more</span>
+</div>
+<div class="expandable-content"><div class="expandable-inner px-md pb-md"></div></div>
+</div>
+</div>
+<!-- Primary Action -->
+<div class="mt-lg md:mt-xl mb-xl">
+<button class="w-full bg-primary text-on-primary font-headline-md text-headline-md py-3 rounded-full shadow-md hover:bg-surface-tint transition-colors active:scale-95 flex items-center justify-center gap-sm">
+<span class="material-symbols-outlined text-[20px]">save</span>
+                    Save Targets
+                </button>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Shared Component) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 pb-safe bg-surface shadow-[0px_-4px_20px_rgba(0,0,0,0.04)] rounded-t-xl">
+<a class="flex flex-col items-center justify-center text-secondary px-4 py-1 tap-highlight-transparent active:scale-95 duration-200 hover:bg-surface-variant transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1 tap-highlight-transparent active:scale-95 duration-200" href="#">
+<span class="material-symbols-outlined">track_changes</span>
+<span class="font-label-md text-label-md">Targets</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary px-4 py-1 tap-highlight-transparent active:scale-95 duration-200 hover:bg-surface-variant transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">restaurant</span>
+<span class="font-label-md text-label-md">Foods</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary px-4 py-1 tap-highlight-transparent active:scale-95 duration-200 hover:bg-surface-variant transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-md text-label-md">Profile</span>
+</a>
+</nav>
+<script>
+        // Simple accordion logic
+        document.querySelectorAll('.toggle-card').forEach(header => {
+            header.addEventListener('click', () => {
+                const container = header.closest('.card-container');
+                const content = container.querySelector('.expandable-content');
+                const isExpanded = content.classList.contains('expanded');
+                
+                // Toggle current
+                if (isExpanded) {
+                    content.classList.remove('expanded');
+                    // Optional: change avatar color back
+                    const avatar = container.querySelector('.rounded-full');
+                    if(avatar) {
+                        avatar.classList.remove('bg-primary-container', 'text-on-primary-container');
+                        avatar.classList.add('bg-surface-container-high', 'text-on-surface');
+                    }
+                } else {
+                    content.classList.add('expanded');
+                    // Optional: highlight avatar
+                    const avatar = container.querySelector('.rounded-full');
+                    if(avatar) {
+                        avatar.classList.remove('bg-surface-container-high', 'text-on-surface');
+                        avatar.classList.add('bg-primary-container', 'text-on-primary-container');
+                    }
+                }
+            });
+        });
+    </script>
+</body></html>

@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MacroTrack - Add Food</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-fixed-dim": "#c4c7c9",
+                    "surface-container-high": "#dce9ff",
+                    "on-tertiary-fixed": "#141b2b",
+                    "on-background": "#0b1c30",
+                    "on-error": "#ffffff",
+                    "outline": "#6d7a77",
+                    "tertiary-fixed": "#dce2f7",
+                    "primary-fixed-dim": "#6bd8cb",
+                    "error": "#ba1a1a",
+                    "on-primary-fixed": "#00201d",
+                    "tertiary-fixed-dim": "#c0c6db",
+                    "on-primary": "#ffffff",
+                    "on-secondary-container": "#626567",
+                    "inverse-on-surface": "#eaf1ff",
+                    "tertiary": "#555c6e",
+                    "on-secondary": "#ffffff",
+                    "surface-variant": "#d3e4fe",
+                    "on-error-container": "#93000a",
+                    "secondary-container": "#e0e3e5",
+                    "secondary-fixed": "#e0e3e5",
+                    "error-container": "#ffdad6",
+                    "on-tertiary": "#ffffff",
+                    "on-primary-container": "#f4fffc",
+                    "outline-variant": "#bcc9c6",
+                    "surface-tint": "#006a61",
+                    "surface": "#f8f9ff",
+                    "tertiary-container": "#6e7487",
+                    "surface-container-lowest": "#ffffff",
+                    "primary-container": "#008378",
+                    "primary-fixed": "#89f5e7",
+                    "primary": "#00685f",
+                    "surface-container": "#e5eeff",
+                    "on-secondary-fixed": "#191c1e",
+                    "inverse-primary": "#6bd8cb",
+                    "on-tertiary-fixed-variant": "#404758",
+                    "secondary": "#5c5f61",
+                    "inverse-surface": "#213145",
+                    "surface-dim": "#cbdbf5",
+                    "surface-container-low": "#eff4ff",
+                    "surface-bright": "#f8f9ff",
+                    "background": "#f8f9ff",
+                    "on-secondary-fixed-variant": "#444749",
+                    "on-surface": "#0b1c30",
+                    "on-surface-variant": "#3d4947",
+                    "on-tertiary-container": "#fefcff",
+                    "surface-container-highest": "#d3e4fe",
+                    "on-primary-fixed-variant": "#005049"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "lg": "24px",
+                    "xs": "4px",
+                    "base": "4px",
+                    "2xl": "48px",
+                    "sm": "8px",
+                    "xl": "32px",
+                    "container-margin-mobile": "16px",
+                    "md": "16px",
+                    "container-margin-desktop": "40px",
+                    "gutter": "16px"
+            },
+            "fontFamily": {
+                    "body-lg": ["Manrope"],
+                    "headline-lg": ["Manrope"],
+                    "label-md": ["Manrope"],
+                    "headline-lg-mobile": ["Manrope"],
+                    "body-md": ["Manrope"],
+                    "headline-md": ["Manrope"],
+                    "data-display": ["Manrope"]
+            },
+            "fontSize": {
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "data-display": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.03em", "fontWeight": "800"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined[data-weight="fill"] {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md min-h-screen">
+<!-- TopNavBar for Desktop -->
+<header class="hidden lg:flex justify-between items-center px-lg py-md w-full max-w-7xl mx-auto bg-surface shadow-sm top-0 z-40 w-full fixed">
+<div class="flex items-center gap-md">
+<span class="font-headline-md text-headline-md font-bold text-primary">MacroTrack</span>
+</div>
+<nav class="flex gap-lg">
+<a class="text-on-surface-variant hover:bg-surface-container-low transition-colors px-4 py-2 rounded-lg font-label-md text-label-md" href="#">Dashboard</a>
+<a class="text-on-surface-variant hover:bg-surface-container-low transition-colors px-4 py-2 rounded-lg font-label-md text-label-md" href="#">Weekly Targets</a>
+<a class="text-primary font-bold border-b-2 border-primary px-4 py-2 font-label-md text-label-md" href="#">My Foods</a>
+<a class="text-on-surface-variant hover:bg-surface-container-low transition-colors px-4 py-2 rounded-lg font-label-md text-label-md" href="#">Profile</a>
+</nav>
+<div class="flex items-center gap-md text-primary">
+<button class="p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+</button>
+<div class="w-10 h-10 rounded-full bg-surface-container-high overflow-hidden border border-outline-variant">
+<!-- Avatar Placeholder -->
+</div>
+</div>
+</header>
+<!-- SideNavBar for Desktop (Visible on lg screens) -->
+<aside class="hidden lg:flex flex-col p-lg gap-md h-screen w-[280px] fixed left-0 top-0 bg-surface-container-low pt-2xl z-50">
+<div class="mb-xl px-4">
+<h1 class="font-headline-md text-headline-md font-bold text-primary">MacroTrack</h1>
+<p class="font-label-md text-label-md text-on-surface-variant">Health Companion</p>
+</div>
+<nav class="flex flex-col gap-sm flex-1">
+<a class="flex items-center gap-md px-4 py-3 rounded-xl text-on-surface-variant hover:bg-secondary-container transition-colors active:scale-98" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-md px-4 py-3 rounded-xl text-on-surface-variant hover:bg-secondary-container transition-colors active:scale-98" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_month">calendar_month</span>
+<span class="font-label-md text-label-md">Weekly Targets</span>
+</a>
+<a class="flex items-center gap-md px-4 py-3 rounded-xl text-primary bg-primary-container/10 transition-colors active:scale-98" href="#">
+<span class="material-symbols-outlined" data-icon="restaurant_menu" data-weight="fill">restaurant_menu</span>
+<span class="font-label-md text-label-md">My Foods</span>
+</a>
+<a class="flex items-center gap-md px-4 py-3 rounded-xl text-on-surface-variant hover:bg-secondary-container transition-colors active:scale-98" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-md text-label-md">Profile</span>
+</a>
+</nav>
+<button class="mt-auto bg-primary text-on-primary font-label-md text-label-md py-3 rounded-xl hover:bg-primary-fixed-dim transition-colors shadow-sm">
+             Add Food
+         </button>
+</aside>
+<!-- Main Content Area -->
+<main class="lg:ml-[280px] pt-[80px] lg:pt-[24px] px-container-margin-mobile lg:px-container-margin-desktop pb-[100px] lg:pb-2xl max-w-5xl mx-auto flex gap-lg flex-col lg:flex-row min-h-[calc(100vh-80px)]">
+<!-- Search & List Column -->
+<section class="flex-1 flex flex-col gap-md">
+<div class="mb-sm flex items-center justify-between lg:hidden">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-on-background">Add Food</h1>
+<button class="p-2 rounded-full bg-surface-container-high text-on-surface">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+</button>
+</div>
+<!-- Search Input -->
+<div class="relative bg-surface-container-lowest rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-2">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline" data-icon="search">search</span>
+<input class="w-full h-[48px] pl-[40px] pr-4 bg-transparent border-none focus:ring-2 focus:ring-primary rounded-lg font-body-md text-body-md text-on-surface placeholder:text-outline-variant" placeholder="Search food database..." type="text" value="Oatmeal"/>
+<button class="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-surface-container-high transition-colors text-outline">
+<span class="material-symbols-outlined" data-icon="barcode_scanner">barcode_scanner</span>
+</button>
+</div>
+<!-- Results Container -->
+<div class="bg-surface-container-lowest rounded-[24px] shadow-[0_4px_20px_rgba(0,0,0,0.04)] overflow-hidden flex-1 flex flex-col">
+<div class="p-md border-b border-surface-variant flex justify-between items-center bg-surface/50 backdrop-blur-sm sticky top-0 z-10">
+<h2 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Search Results</h2>
+<span class="font-body-md text-body-md text-outline">12 results</span>
+</div>
+<div class="overflow-y-auto flex-1 p-sm flex flex-col gap-xs">
+<!-- Food Item (Selected) -->
+<div class="p-md rounded-xl bg-primary-container/10 border border-primary/20 flex flex-col sm:flex-row justify-between sm:items-center gap-sm cursor-pointer transition-colors">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined" data-icon="nutrition">nutrition</span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface text-base">Rolled Oats</h3>
+<p class="font-body-md text-body-md text-on-surface-variant text-sm">Default serving: 1/2 cup (40g)</p>
+</div>
+</div>
+<div class="flex gap-4 sm:gap-lg font-label-md text-label-md text-sm text-secondary">
+<span class="flex flex-col items-center"><b>150</b><span class="text-xs font-normal">kcal</span></span>
+<span class="flex flex-col items-center text-primary"><b>27g</b><span class="text-xs font-normal">C</span></span>
+<span class="flex flex-col items-center text-[#d97706]"><b>5g</b><span class="text-xs font-normal">P</span></span>
+<span class="flex flex-col items-center text-[#ea580c]"><b>3g</b><span class="text-xs font-normal">F</span></span>
+</div>
+</div>
+<!-- Food Item -->
+<div class="p-md rounded-xl hover:bg-surface-container-low flex flex-col sm:flex-row justify-between sm:items-center gap-sm cursor-pointer transition-colors border border-transparent">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-secondary shrink-0">
+<span class="material-symbols-outlined" data-icon="restaurant">restaurant</span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface text-base">Steel Cut Oats</h3>
+<p class="font-body-md text-body-md text-on-surface-variant text-sm">Default serving: 1/4 cup dry (40g)</p>
+</div>
+</div>
+<div class="flex gap-4 sm:gap-lg font-label-md text-label-md text-sm text-secondary">
+<span class="flex flex-col items-center"><b>150</b><span class="text-xs font-normal">kcal</span></span>
+<span class="flex flex-col items-center text-primary"><b>27g</b><span class="text-xs font-normal">C</span></span>
+<span class="flex flex-col items-center text-[#d97706]"><b>5g</b><span class="text-xs font-normal">P</span></span>
+<span class="flex flex-col items-center text-[#ea580c]"><b>2.5g</b><span class="text-xs font-normal">F</span></span>
+</div>
+</div>
+<!-- Food Item -->
+<div class="p-md rounded-xl hover:bg-surface-container-low flex flex-col sm:flex-row justify-between sm:items-center gap-sm cursor-pointer transition-colors border border-transparent">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-secondary shrink-0">
+<span class="material-symbols-outlined" data-icon="restaurant">restaurant</span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface text-base">Instant Oatmeal Packet (Plain)</h3>
+<p class="font-body-md text-body-md text-on-surface-variant text-sm">Default serving: 1 packet (28g)</p>
+</div>
+</div>
+<div class="flex gap-4 sm:gap-lg font-label-md text-label-md text-sm text-secondary">
+<span class="flex flex-col items-center"><b>100</b><span class="text-xs font-normal">kcal</span></span>
+<span class="flex flex-col items-center text-primary"><b>19g</b><span class="text-xs font-normal">C</span></span>
+<span class="flex flex-col items-center text-[#d97706]"><b>4g</b><span class="text-xs font-normal">P</span></span>
+<span class="flex flex-col items-center text-[#ea580c]"><b>2g</b><span class="text-xs font-normal">F</span></span>
+</div>
+</div>
+</div>
+<div class="p-md border-t border-surface-variant bg-surface/50">
+<button class="w-full flex items-center justify-center gap-2 text-primary font-label-md text-label-md py-3 rounded-xl bg-[#F0FDFA] hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+                        Create custom food
+                    </button>
+</div>
+</div>
+</section>
+<!-- Detail Panel (Active) -->
+<section class="w-full lg:w-[400px] shrink-0 bg-surface-container-lowest rounded-[24px] shadow-[0_4px_20px_rgba(0,0,0,0.04)] flex flex-col h-fit lg:sticky lg:top-[104px]">
+<!-- Header -->
+<div class="p-xl border-b border-surface-variant relative">
+<button class="absolute top-4 right-4 p-2 rounded-full hover:bg-surface-container-low text-outline transition-colors lg:hidden">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+</button>
+<div class="w-16 h-16 rounded-2xl bg-primary-container text-primary flex items-center justify-center mb-md">
+<span class="material-symbols-outlined text-3xl" data-icon="nutrition">nutrition</span>
+</div>
+<h2 class="font-headline-lg text-headline-lg-mobile lg:text-headline-lg text-on-surface mb-xs">Rolled Oats</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Generic Brand • Raw</p>
+</div>
+<!-- Content -->
+<div class="p-xl flex flex-col gap-xl">
+<!-- Macro Summary Rings -->
+<div class="flex justify-around items-center">
+<div class="relative w-20 h-20 flex flex-col items-center justify-center">
+<svg class="absolute inset-0 w-full h-full transform -rotate-90">
+<circle class="text-surface-container-high" cx="40" cy="40" fill="transparent" r="34" stroke="currentColor" stroke-width="6"></circle>
+<circle class="text-primary" cx="40" cy="40" fill="transparent" r="34" stroke="currentColor" stroke-dasharray="213" stroke-dashoffset="60" stroke-linecap="round" stroke-width="6"></circle>
+</svg>
+<span class="font-headline-md text-headline-md text-on-surface leading-none z-10 relative mt-2">40g</span>
+<span class="font-body-md text-body-md text-outline text-xs z-10 relative">Carbs</span>
+</div>
+<div class="relative w-20 h-20 flex flex-col items-center justify-center">
+<svg class="absolute inset-0 w-full h-full transform -rotate-90">
+<circle class="text-surface-container-high" cx="40" cy="40" fill="transparent" r="34" stroke="currentColor" stroke-width="6"></circle>
+<circle class="text-[#d97706]" cx="40" cy="40" fill="transparent" r="34" stroke="currentColor" stroke-dasharray="213" stroke-dashoffset="150" stroke-linecap="round" stroke-width="6"></circle>
+</svg>
+<span class="font-headline-md text-headline-md text-on-surface leading-none z-10 relative mt-2">7.5g</span>
+<span class="font-body-md text-body-md text-outline text-xs z-10 relative">Protein</span>
+</div>
+<div class="relative w-20 h-20 flex flex-col items-center justify-center">
+<svg class="absolute inset-0 w-full h-full transform -rotate-90">
+<circle class="text-surface-container-high" cx="40" cy="40" fill="transparent" r="34" stroke="currentColor" stroke-width="6"></circle>
+<circle class="text-[#ea580c]" cx="40" cy="40" fill="transparent" r="34" stroke="currentColor" stroke-dasharray="213" stroke-dashoffset="180" stroke-linecap="round" stroke-width="6"></circle>
+</svg>
+<span class="font-headline-md text-headline-md text-on-surface leading-none z-10 relative mt-2">4.5g</span>
+<span class="font-body-md text-body-md text-outline text-xs z-10 relative">Fat</span>
+</div>
+</div>
+<div class="text-center font-label-md text-label-md text-secondary">
+                    Total Energy: <span class="text-on-surface font-bold text-lg ml-1">225 kcal</span>
+</div>
+<hr class="border-surface-variant"/>
+<!-- Inputs -->
+<div class="flex flex-col gap-md">
+<div>
+<label class="font-label-md text-label-md text-on-surface-variant block mb-2">Meal</label>
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+<button class="bg-primary text-on-primary font-label-md text-label-md py-2 rounded-lg border border-primary transition-colors">Breakfast</button>
+<button class="bg-surface-container-low text-on-surface font-label-md text-label-md py-2 rounded-lg border border-outline-variant hover:bg-surface-container-high transition-colors">Lunch</button>
+<button class="bg-surface-container-low text-on-surface font-label-md text-label-md py-2 rounded-lg border border-outline-variant hover:bg-surface-container-high transition-colors">Dinner</button>
+<button class="bg-surface-container-low text-on-surface font-label-md text-label-md py-2 rounded-lg border border-outline-variant hover:bg-surface-container-high transition-colors">Snack</button>
+</div>
+</div>
+<div class="flex gap-md">
+<div class="flex-1">
+<label class="font-label-md text-label-md text-on-surface-variant block mb-2">Serving Size</label>
+<div class="relative">
+<select class="w-full h-[48px] px-4 bg-surface-container-low border border-outline-variant rounded-lg font-body-md text-body-md text-on-surface focus:ring-2 focus:ring-primary focus:border-primary appearance-none cursor-pointer">
+<option>1/2 cup (40g)</option>
+<option>1 cup (80g)</option>
+<option>100g</option>
+<option>1 gram</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-outline" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+<div class="w-1/3">
+<label class="font-label-md text-label-md text-on-surface-variant block mb-2">Quantity</label>
+<input class="w-full h-[48px] px-4 bg-surface-container-low border border-outline-variant rounded-lg font-body-md text-body-md text-on-surface focus:ring-2 focus:ring-primary focus:border-primary text-center" step="0.1" type="number" value="1.5"/>
+</div>
+</div>
+</div>
+</div>
+<!-- Action -->
+<div class="p-xl pt-0 mt-auto">
+<button class="w-full bg-primary text-on-primary font-headline-md text-headline-md py-4 rounded-xl hover:bg-primary-fixed-dim transition-all active:scale-[0.98] shadow-md flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" data-icon="check">check</span>
+                    Add to Today
+                </button>
+</div>
+</section>
+</main>
+<!-- BottomNavBar for Mobile -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 lg:hidden bg-surface shadow-[0_-4px_20px_rgba(0,0,0,0.08)] pb-safe">
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-high transition-colors active:scale-90 duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="dashboard">dashboard</span>
+<span class="font-label-md text-label-md text-[10px]">Dashboard</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-high transition-colors active:scale-90 duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="calendar_month">calendar_month</span>
+<span class="font-label-md text-label-md text-[10px]">Targets</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1 active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="restaurant_menu" data-weight="fill">restaurant_menu</span>
+<span class="font-label-md text-label-md text-[10px] font-bold">Foods</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-high transition-colors active:scale-90 duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="person">person</span>
+<span class="font-label-md text-label-md text-[10px]">Profile</span>
+</a>
+</nav>
+</body></html>

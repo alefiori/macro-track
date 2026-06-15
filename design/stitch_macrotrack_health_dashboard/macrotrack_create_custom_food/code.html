@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MacroTrack - Create Custom Food</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-fixed-dim": "#c4c7c9",
+                    "surface-container-high": "#dce9ff",
+                    "on-tertiary-fixed": "#141b2b",
+                    "on-background": "#0b1c30",
+                    "on-error": "#ffffff",
+                    "outline": "#6d7a77",
+                    "tertiary-fixed": "#dce2f7",
+                    "primary-fixed-dim": "#6bd8cb",
+                    "error": "#ba1a1a",
+                    "on-primary-fixed": "#00201d",
+                    "tertiary-fixed-dim": "#c0c6db",
+                    "on-primary": "#ffffff",
+                    "on-secondary-container": "#626567",
+                    "inverse-on-surface": "#eaf1ff",
+                    "tertiary": "#555c6e",
+                    "on-secondary": "#ffffff",
+                    "surface-variant": "#d3e4fe",
+                    "on-error-container": "#93000a",
+                    "secondary-container": "#e0e3e5",
+                    "secondary-fixed": "#e0e3e5",
+                    "error-container": "#ffdad6",
+                    "on-tertiary": "#ffffff",
+                    "on-primary-container": "#f4fffc",
+                    "outline-variant": "#bcc9c6",
+                    "surface-tint": "#006a61",
+                    "surface": "#f8f9ff",
+                    "tertiary-container": "#6e7487",
+                    "surface-container-lowest": "#ffffff",
+                    "primary-container": "#008378",
+                    "primary-fixed": "#89f5e7",
+                    "primary": "#00685f",
+                    "surface-container": "#e5eeff",
+                    "on-secondary-fixed": "#191c1e",
+                    "inverse-primary": "#6bd8cb",
+                    "on-tertiary-fixed-variant": "#404758",
+                    "secondary": "#5c5f61",
+                    "inverse-surface": "#213145",
+                    "surface-dim": "#cbdbf5",
+                    "surface-container-low": "#eff4ff",
+                    "surface-bright": "#f8f9ff",
+                    "background": "#f8f9ff",
+                    "on-secondary-fixed-variant": "#444749",
+                    "on-surface": "#0b1c30",
+                    "on-surface-variant": "#3d4947",
+                    "on-tertiary-container": "#fefcff",
+                    "surface-container-highest": "#d3e4fe",
+                    "on-primary-fixed-variant": "#005049"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "lg": "24px",
+                    "xs": "4px",
+                    "base": "4px",
+                    "2xl": "48px",
+                    "sm": "8px",
+                    "xl": "32px",
+                    "container-margin-mobile": "16px",
+                    "md": "16px",
+                    "container-margin-desktop": "40px",
+                    "gutter": "16px"
+            },
+            "fontFamily": {
+                    "body-lg": [
+                            "Manrope"
+                    ],
+                    "headline-lg": [
+                            "Manrope"
+                    ],
+                    "label-md": [
+                            "Manrope"
+                    ],
+                    "headline-lg-mobile": [
+                            "Manrope"
+                    ],
+                    "body-md": [
+                            "Manrope"
+                    ],
+                    "headline-md": [
+                            "Manrope"
+                    ],
+                    "data-display": [
+                            "Manrope"
+                    ]
+            },
+            "fontSize": {
+                    "body-lg": [
+                            "18px",
+                            {
+                                    "lineHeight": "28px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "headline-lg": [
+                            "32px",
+                            {
+                                    "lineHeight": "40px",
+                                    "letterSpacing": "-0.02em",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "label-md": [
+                            "14px",
+                            {
+                                    "lineHeight": "20px",
+                                    "letterSpacing": "0.05em",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "headline-lg-mobile": [
+                            "24px",
+                            {
+                                    "lineHeight": "32px",
+                                    "letterSpacing": "-0.01em",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "body-md": [
+                            "16px",
+                            {
+                                    "lineHeight": "24px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "headline-md": [
+                            "20px",
+                            {
+                                    "lineHeight": "28px",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "data-display": [
+                            "40px",
+                            {
+                                    "lineHeight": "48px",
+                                    "letterSpacing": "-0.03em",
+                                    "fontWeight": "800"
+                            }
+                    ]
+            }
+    },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #F1F5F9; /* As per guidelines */
+        }
+        .macro-card-shadow {
+            box-shadow: 0px 4px 20px rgba(0,0,0,0.04);
+        }
+    </style>
+</head>
+<body class="font-body-md text-on-surface bg-background flex justify-center w-full min-h-screen">
+<!-- Suppressed Top Nav and Side Nav because this is a specific Task-Focused form page with a back action. -->
+<div class="w-full max-w-[1200px] flex flex-col md:flex-row relative">
+<!-- Main Content Area -->
+<main class="flex-1 w-full flex flex-col px-container-margin-mobile md:px-container-margin-desktop py-lg pb-32">
+<!-- Header / Back Action -->
+<div class="flex items-center gap-sm mb-lg">
+<button aria-label="Go back" class="p-2 rounded-full hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">arrow_back</span>
+</button>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg text-on-surface font-bold">Create Custom Food</h1>
+</div>
+<!-- Form Container -->
+<div class="bg-surface-container-lowest rounded-[24px] p-5 md:p-[20px] macro-card-shadow max-w-2xl mx-auto w-full">
+<form class="flex flex-col gap-lg" id="food-form">
+<!-- Basic Info Section -->
+<div class="flex flex-col gap-md">
+<h2 class="font-headline-md text-headline-md text-primary font-bold">Food Details</h2>
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-label-md text-on-surface-variant" for="foodName">Food Name</label>
+<input class="w-full min-h-[48px] rounded-lg border border-outline-variant bg-surface-bright px-4 py-3 font-body-md text-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors" id="foodName" placeholder="e.g., Homemade Almond Butter" type="text"/>
+</div>
+<div class="flex flex-col md:flex-row gap-md">
+<div class="flex flex-col gap-2 flex-1">
+<label class="font-label-md text-label-md text-on-surface-variant" for="servingSize">Serving Amount</label>
+<input class="w-full min-h-[48px] rounded-lg border border-outline-variant bg-surface-bright px-4 py-3 font-body-md text-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors" id="servingSize" placeholder="1" type="number"/>
+</div>
+<div class="flex flex-col gap-2 flex-1">
+<label class="font-label-md text-label-md text-on-surface-variant" for="servingUnit">Serving Unit</label>
+<select class="w-full min-h-[48px] rounded-lg border border-outline-variant bg-surface-bright px-4 py-3 font-body-md text-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors" id="servingUnit">
+<option value="g">Grams (g)</option>
+<option value="ml">Milliliters (ml)</option>
+<option value="oz">Ounces (oz)</option>
+<option value="cup">Cup</option>
+<option value="piece">Piece</option>
+<option value="tbsp">Tablespoon</option>
+</select>
+</div>
+</div>
+</div>
+<hr class="border-surface-container-highest"/>
+<!-- Macros Section -->
+<div class="flex flex-col gap-md">
+<div class="flex justify-between items-end">
+<h2 class="font-headline-md text-headline-md text-primary font-bold">Macros (per serving)</h2>
+<!-- Live Calories Readout -->
+<div class="flex flex-col items-end">
+<span class="font-label-md text-label-md text-on-surface-variant">Est. Calories</span>
+<div class="flex items-baseline gap-1">
+<span class="font-data-display text-data-display text-on-surface font-extrabold" id="calorieCount">0</span>
+<span class="font-body-md text-body-md text-on-surface-variant">kcal</span>
+</div>
+</div>
+</div>
+<!-- Macro Inputs Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-md">
+<!-- Carbs -->
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-label-md flex items-center gap-2" for="carbsInput" style="color: #D97706;">
+<span class="w-3 h-3 rounded-full bg-[#D97706]"></span>
+                                    Carbs (g)
+                                </label>
+<input class="w-full min-h-[48px] rounded-lg border border-outline-variant bg-surface-bright px-4 py-3 font-body-md text-body-md text-on-surface focus:border-[#D97706] focus:ring-1 focus:ring-[#D97706] outline-none transition-colors macro-input" data-multiplier="4" id="carbsInput" min="0" type="number" value="0"/>
+</div>
+<!-- Protein -->
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-label-md flex items-center gap-2" for="proteinInput" style="color: #2563EB;">
+<span class="w-3 h-3 rounded-full bg-[#2563EB]"></span>
+                                    Protein (g)
+                                </label>
+<input class="w-full min-h-[48px] rounded-lg border border-outline-variant bg-surface-bright px-4 py-3 font-body-md text-body-md text-on-surface focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] outline-none transition-colors macro-input" data-multiplier="4" id="proteinInput" min="0" type="number" value="0"/>
+</div>
+<!-- Fats -->
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-label-md flex items-center gap-2" for="fatsInput" style="color: #9333EA;">
+<span class="w-3 h-3 rounded-full bg-[#9333EA]"></span>
+                                    Fats (g)
+                                </label>
+<input class="w-full min-h-[48px] rounded-lg border border-outline-variant bg-surface-bright px-4 py-3 font-body-md text-body-md text-on-surface focus:border-[#9333EA] focus:ring-1 focus:ring-[#9333EA] outline-none transition-colors macro-input" data-multiplier="9" id="fatsInput" min="0" type="number" value="0"/>
+</div>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex flex-col sm:flex-row gap-sm mt-md">
+<button class="flex-1 min-h-[48px] bg-primary text-on-primary font-label-md text-label-md font-semibold rounded-full hover:bg-on-primary-fixed-variant shadow-sm hover:shadow-md transition-all active:scale-95 flex items-center justify-center gap-2" type="button">
+<span class="material-symbols-outlined text-[20px]">save</span>
+                            Save Food
+                        </button>
+<button class="flex-1 min-h-[48px] bg-primary-container/20 text-primary font-label-md text-label-md font-semibold rounded-full hover:bg-primary-container/30 transition-all active:scale-95 flex items-center justify-center gap-2" type="button">
+<span class="material-symbols-outlined text-[20px]">add_task</span>
+                            Save &amp; Add Today
+                        </button>
+</div>
+</form>
+</div>
+</main>
+</div>
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const inputs = document.querySelectorAll('.macro-input');
+            const calorieDisplay = document.getElementById('calorieCount');
+
+            function updateCalories() {
+                let totalCalories = 0;
+                inputs.forEach(input => {
+                    const value = parseFloat(input.value) || 0;
+                    const multiplier = parseFloat(input.dataset.multiplier);
+                    totalCalories += value * multiplier;
+                });
+                
+                // Add a subtle pop animation to the number
+                calorieDisplay.textContent = Math.round(totalCalories);
+                calorieDisplay.style.transform = 'scale(1.1)';
+                setTimeout(() => {
+                    calorieDisplay.style.transform = 'scale(1)';
+                    calorieDisplay.style.transition = 'transform 0.2s ease-out';
+                }, 50);
+            }
+
+            inputs.forEach(input => {
+                input.addEventListener('input', updateCalories);
+                // Select text on focus for easier editing
+                input.addEventListener('focus', function() {
+                    if (this.value === '0') this.select();
+                });
+            });
+        });
+    </script>
+</body></html>

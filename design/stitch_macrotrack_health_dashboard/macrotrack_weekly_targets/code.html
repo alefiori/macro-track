@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MacroTrack - Weekly Targets</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed-dim": "#c4c7c9",
+                        "surface-container-high": "#dce9ff",
+                        "on-tertiary-fixed": "#141b2b",
+                        "on-background": "#0b1c30",
+                        "on-error": "#ffffff",
+                        "outline": "#6d7a77",
+                        "tertiary-fixed": "#dce2f7",
+                        "primary-fixed-dim": "#6bd8cb",
+                        "error": "#ba1a1a",
+                        "on-primary-fixed": "#00201d",
+                        "tertiary-fixed-dim": "#c0c6db",
+                        "on-primary": "#ffffff",
+                        "on-secondary-container": "#626567",
+                        "inverse-on-surface": "#eaf1ff",
+                        "tertiary": "#555c6e",
+                        "on-secondary": "#ffffff",
+                        "surface-variant": "#d3e4fe",
+                        "on-error-container": "#93000a",
+                        "secondary-container": "#e0e3e5",
+                        "secondary-fixed": "#e0e3e5",
+                        "error-container": "#ffdad6",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-container": "#f4fffc",
+                        "outline-variant": "#bcc9c6",
+                        "surface-tint": "#006a61",
+                        "surface": "#f8f9ff",
+                        "tertiary-container": "#6e7487",
+                        "surface-container-lowest": "#ffffff",
+                        "primary-container": "#008378",
+                        "primary-fixed": "#89f5e7",
+                        "primary": "#00685f",
+                        "surface-container": "#e5eeff",
+                        "on-secondary-fixed": "#191c1e",
+                        "inverse-primary": "#6bd8cb",
+                        "on-tertiary-fixed-variant": "#404758",
+                        "secondary": "#5c5f61",
+                        "inverse-surface": "#213145",
+                        "surface-dim": "#cbdbf5",
+                        "surface-container-low": "#eff4ff",
+                        "surface-bright": "#f8f9ff",
+                        "background": "#f8f9ff",
+                        "on-secondary-fixed-variant": "#444749",
+                        "on-surface": "#0b1c30",
+                        "on-surface-variant": "#3d4947",
+                        "on-tertiary-container": "#fefcff",
+                        "surface-container-highest": "#d3e4fe",
+                        "on-primary-fixed-variant": "#005049"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "lg": "24px",
+                        "xs": "4px",
+                        "base": "4px",
+                        "2xl": "48px",
+                        "sm": "8px",
+                        "xl": "32px",
+                        "container-margin-mobile": "16px",
+                        "md": "16px",
+                        "container-margin-desktop": "40px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Manrope"],
+                        "headline-lg": ["Manrope"],
+                        "label-md": ["Manrope"],
+                        "headline-lg-mobile": ["Manrope"],
+                        "body-md": ["Manrope"],
+                        "headline-md": ["Manrope"],
+                        "data-display": ["Manrope"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "data-display": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.03em", "fontWeight": "800" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom scrollbar for grid area to maintain aesthetic */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #dce2f7;
+            border-radius: 10px;
+        }
+        /* Hide number input spinners */
+        input[type="number"]::-webkit-inner-spin-button, 
+        input[type="number"]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md text-body-md flex h-screen overflow-hidden antialiased">
+<!-- Desktop SideNav -->
+<aside class="hidden lg:flex flex-col p-lg gap-md h-screen w-[280px] fixed left-0 top-0 bg-surface-container-low dark:bg-surface-container-lowest z-40 border-r border-outline-variant/20">
+<div class="flex items-center gap-sm mb-xl px-sm">
+<span class="material-symbols-outlined text-primary text-[32px]" style="font-variation-settings: 'FILL' 1;">eco</span>
+<div>
+<h1 class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed">MacroTrack</h1>
+<p class="font-label-md text-label-md text-on-surface-variant opacity-70">Health Companion</p>
+</div>
+</div>
+<nav class="flex-1 flex flex-col gap-sm">
+<a class="flex items-center gap-md px-md py-sm rounded-xl text-on-surface-variant dark:text-on-secondary-fixed-variant hover:bg-secondary-container dark:hover:bg-surface-container-high transition-transform active:scale-98" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-xl text-primary dark:text-primary-fixed bg-primary-container/10 transition-transform active:scale-98" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">calendar_month</span>
+<span class="font-label-md text-label-md">Weekly Targets</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-xl text-on-surface-variant dark:text-on-secondary-fixed-variant hover:bg-secondary-container dark:hover:bg-surface-container-high transition-transform active:scale-98" href="#">
+<span class="material-symbols-outlined">restaurant_menu</span>
+<span class="font-label-md text-label-md">My Foods</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-xl text-on-surface-variant dark:text-on-secondary-fixed-variant hover:bg-secondary-container dark:hover:bg-surface-container-high transition-transform active:scale-98" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-md text-label-md">Profile</span>
+</a>
+</nav>
+<button class="w-full bg-primary text-on-primary font-label-md text-label-md h-[48px] rounded-full flex items-center justify-center gap-sm shadow-sm hover:shadow-md transition-all active:scale-95">
+<span class="material-symbols-outlined">add</span>
+            Add Food
+        </button>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col lg:ml-[280px] h-screen overflow-y-auto relative pb-[80px] lg:pb-0">
+<!-- Mobile TopAppBar -->
+<header class="lg:hidden flex justify-between items-center px-container-margin-mobile py-md w-full bg-surface dark:bg-background shadow-sm z-30 sticky top-0">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">eco</span>
+<span class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed">MacroTrack</span>
+</div>
+<div class="flex items-center gap-md">
+<button class="text-on-surface-variant dark:text-on-secondary-fixed-variant hover:bg-surface-container-low dark:hover:bg-surface-container-highest p-sm rounded-full transition-colors active:scale-95">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-on-surface-variant dark:text-on-secondary-fixed-variant hover:bg-surface-container-low dark:hover:bg-surface-container-highest p-sm rounded-full transition-colors active:scale-95">
+<span class="material-symbols-outlined">search</span>
+</button>
+</div>
+</header>
+<!-- Page Header -->
+<div class="px-container-margin-mobile lg:px-container-margin-desktop py-lg lg:py-xl flex flex-col md:flex-row md:items-end justify-between gap-md border-b border-outline-variant/10 bg-surface-bright/50 backdrop-blur-sm sticky top-0 lg:top-0 z-20">
+<div>
+<h2 class="font-headline-lg-mobile lg:font-headline-lg text-headline-lg-mobile lg:text-headline-lg text-on-surface">Weekly Planner</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Set your daily macronutrient goals for the week.</p>
+</div>
+<div class="flex items-center gap-sm mt-sm md:mt-0">
+<button class="h-[48px] px-lg rounded-full font-label-md text-label-md bg-secondary-container text-on-secondary-container hover:bg-surface-container-high transition-all active:scale-95 flex items-center justify-center gap-sm" id="copyToAllBtn">
+<span class="material-symbols-outlined text-[20px]">content_copy</span>
+<span class="hidden sm:inline">Copy Mon to All</span>
+<span class="sm:hidden">Copy Mon</span>
+</button>
+<button class="h-[48px] px-lg rounded-full font-label-md text-label-md bg-primary text-on-primary shadow-sm hover:shadow-md transition-all active:scale-95 flex items-center justify-center gap-sm">
+<span class="material-symbols-outlined text-[20px]">save</span>
+                    Save Targets
+                </button>
+</div>
+</div>
+<!-- Targets Grid Area -->
+<div class="p-container-margin-mobile lg:p-container-margin-desktop w-full max-w-[1400px] mx-auto">
+<div class="grid grid-cols-1 lg:grid-cols-7 gap-md lg:gap-sm items-start" id="daysContainer">
+<!-- Day Card Template (Monday) -->
+<div class="day-card bg-surface-container-lowest rounded-xl p-md shadow-[0px_4px_20px_rgba(0,0,0,0.03)] border border-outline-variant/20 flex flex-col gap-md transition-all hover:shadow-[0px_4px_24px_rgba(0,104,95,0.05)]" data-day="monday">
+<div class="flex items-center justify-between pb-sm border-b border-outline-variant/10">
+<h3 class="font-headline-md text-headline-md text-primary">Mon</h3>
+<span class="material-symbols-outlined text-outline-variant text-[20px]">check_circle</span>
+</div>
+<div class="flex flex-col gap-sm">
+<!-- Carbs Input -->
+<div class="flex flex-col gap-xs relative">
+<label class="font-label-md text-label-md text-on-surface-variant flex items-center gap-xs">
+<div class="w-2 h-2 rounded-full bg-primary-fixed"></div>
+                                Carbs (g)
+                            </label>
+<input class="macro-input carbs-input w-full h-[48px] bg-surface text-on-surface font-body-md text-body-md border border-outline-variant/50 rounded-lg px-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-outline text-right" min="0" placeholder="0" type="number" value="250"/>
+</div>
+<!-- Protein Input -->
+<div class="flex flex-col gap-xs relative">
+<label class="font-label-md text-label-md text-on-surface-variant flex items-center gap-xs">
+<div class="w-2 h-2 rounded-full bg-tertiary-fixed"></div>
+                                Protein (g)
+                            </label>
+<input class="macro-input protein-input w-full h-[48px] bg-surface text-on-surface font-body-md text-body-md border border-outline-variant/50 rounded-lg px-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-outline text-right" min="0" placeholder="0" type="number" value="160"/>
+</div>
+<!-- Fats Input -->
+<div class="flex flex-col gap-xs relative">
+<label class="font-label-md text-label-md text-on-surface-variant flex items-center gap-xs">
+<div class="w-2 h-2 rounded-full bg-secondary-fixed-dim"></div>
+                                Fats (g)
+                            </label>
+<input class="macro-input fats-input w-full h-[48px] bg-surface text-on-surface font-body-md text-body-md border border-outline-variant/50 rounded-lg px-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-outline text-right" min="0" placeholder="0" type="number" value="70"/>
+</div>
+</div>
+<div class="mt-auto pt-sm bg-surface-container-low rounded-lg p-sm flex flex-col items-center justify-center">
+<span class="font-label-md text-label-md text-on-surface-variant text-[12px] uppercase tracking-wider">Total Calories</span>
+<div class="font-data-display text-[28px] leading-[36px] font-bold text-on-surface calorie-total">2270</div>
+</div>
+</div>
+<!-- Tuesday -->
+<div class="day-card bg-surface-container-lowest rounded-xl p-md shadow-[0px_4px_20px_rgba(0,0,0,0.03)] border border-outline-variant/20 flex flex-col gap-md transition-all hover:shadow-[0px_4px_24px_rgba(0,104,95,0.05)]" data-day="tuesday">
+<div class="flex items-center justify-between pb-sm border-b border-outline-variant/10">
+<h3 class="font-headline-md text-headline-md text-on-surface">Tue</h3>
+</div>
+<div class="flex flex-col gap-sm">
+<div class="flex flex-col gap-xs relative">
+<label class="font-label-md text-label-md text-on-surface-variant flex items-center gap-xs"><div class="w-2 h-2 rounded-full bg-primary-fixed"></div>Carbs</label>
+<input class="macro-input carbs-input w-full h-[48px] bg-surface text-on-surface font-body-md text-body-md border border-outline-variant/50 rounded-lg px-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-right" min="0" type="number" value="250"/>
+</div>
+<div class="flex flex-col gap-xs relative">
+<label class="font-label-md text-label-md text-on-surface-variant flex items-center gap-xs"><div class="w-2 h-2 rounded-full bg-tertiary-fixed"></div>Protein</label>
+<input class="macro-input protein-input w-full h-[48px] bg-surface text-on-surface font-body-md text-body-md border border-outline-variant/50 rounded-lg px-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-right" min="0" type="number" value="160"/>
+</div>
+<div class="flex flex-col gap-xs relative">
+<label class="font-label-md text-label-md text-on-surface-variant flex items-center gap-xs"><div class="w-2 h-2 rounded-full bg-secondary-fixed-dim"></div>Fats</label>
+<input class="macro-input fats-input w-full h-[48px] bg-surface text-on-surface font-body-md text-body-md border border-outline-variant/50 rounded-lg px-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-right" min="0" type="number" value="70"/>
+</div>
+</div>
+<div class="mt-auto pt-sm bg-surface-container-low rounded-lg p-sm flex flex-col items-center justify-center">
+<span class="font-label-md text-label-md text-on-surface-variant text-[12px] uppercase tracking-wider">Total Calories</span>
+<div class="font-data-display text-[28px] leading-[36px] font-bold text-on-surface calorie-total">2270</div>
+</div>
+</div>
+<!-- Wednesday -->
+<div class="day-card bg-surface-container-lowest rounded-xl p-md shadow-[0px_4px_20px_rgba(0,0,0,0.03)] border border-outline-variant/20 flex flex-col gap-md transition-all hover:shadow-[0px_4px_24px_rgba(0,104,95,0.05)]" data-day="wednesday">
+<div class="flex items-center justify-between pb-sm border-b border-outline-variant/10">
+<h3 class="font-headline-md text-headline-md text-on-surface">Wed</h3>
+</div>
+<div class="flex flex-col gap-sm">
+<div class="flex flex-col gap-xs relative">
+<label class="font-label-md text-label-md text-on-surface-variant flex items-center gap-xs"><div class="w-2 h-2 rounded-full bg-primary-fixed"></div>Carbs</label>
+<input class="macro-input carbs-input w-full h-[48px] bg-surface text-on-surface font-body-md text-body-md border border-outline-variant/50 rounded-lg px-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-right" min="0" type="number" value="250"/>
+</div>
+<div class="flex flex-col gap-xs relative">
+<label class="font-label-md text-label-md text-on-surface-variant flex items-center gap-xs"><div class="w-2 h-2 rounded-full bg-tertiary-fixed"></div>Protein</label>
+<input class="macro-input protein-input w-full h-[48px] bg-surface text-on-surface font-body-md text-body-md border border-outline-variant/50 rounded-lg px-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-right" min="0" type="number" value="160"/>
+</div>
+<div class="flex flex-col gap-xs relative">
+<label class="font-label-md text-label-md text-on-surface-variant flex items-center gap-xs"><div class="w-2 h-2 rounded-full bg-secondary-fixed-dim"></div>Fats</label>
+<input class="macro-input fats-input w-full h-[48px] bg-surface text-on-surface font-body-md text-body-md border border-outline-variant/50 rounded-lg px-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-right" min="0" type="number" value="70"/>
+</div>
+</div>
+<div class="mt-auto pt-sm bg-surface-container-low rounded-lg p-sm flex flex-col items-center justify-center">
+<span class="font-label-md text-label-md text-on-surface-variant text-[12px] uppercase tracking-wider">Total Calories</span>
+<div class="font-data-display text-[28px] leading-[36px] font-bold text-on-surface calorie-total">2270</div>
+</div>
+</div>
+<!-- Thursday -->
+<div class="day-card bg-surface-container-lowest rounded-xl p-md shadow-[0px_4px_20px_rgba(0,0,0,0.03)] border border-outline-variant/20 flex flex-col gap-md transition-all hover:shadow-[0px_4px_24px_rgba(0,104,95,0.05)]" data-day="thursday">
+<div class="flex items-center justify-between pb-sm border-b border-outline-variant/10">
+<h3 class="font-headline-md text-headline-md text-on-surface">Thu</h3>
+</div>
+<div class="flex flex-col gap-sm">
+<div class="flex flex-col gap-xs relative">
+<label class="font-label-md text-label-md text-on-surface-variant flex items-center gap-xs"><div class="w-2 h-2 rounded-full bg-primary-fixed"></div>Carbs</label>
+<input class="macro-input carbs-input w-full h-[48px] bg-surface text-on-surface font-body-md text-body-md border border-outline-variant/50 rounded-lg px-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-right" min="0" type="number" value="250"/>
+</div>
+<div class="flex flex-col gap-xs relative">
+<label class="font-label-md text-label-md text-on-surface-variant flex items-center gap-xs"><div class="w-2 h-2 rounded-full bg-tertiary-fixed"></div>Protein</label>
+<input class="macro-input protein-input w-full h-[48px] bg-surface text-on-surface font-body-md text-body-md border border-outline-variant/50 rounded-lg px-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-right" min="0" type="number" value="160"/>
+</div>
+<div class="flex flex-col gap-xs relative">
+<label class="font-label-md text-label-md text-on-surface-variant flex items-center gap-xs"><div class="w-2 h-2 rounded-full bg-secondary-fixed-dim"></div>Fats</label>
+<input class="macro-input fats-input w-full h-[48px] bg-surface text-on-surface font-body-md text-body-md border border-outline-variant/50 rounded-lg px-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-right" min="0" type="number" value="70"/>
+</div>
+</div>
+<div class="mt-auto pt-sm bg-surface-container-low rounded-lg p-sm flex flex-col items-center justify-center">
+<span class="font-label-md text-label-md text-on-surface-variant text-[12px] uppercase tracking-wider">Total Calories</span>
+<div class="font-data-display text-[28px] leading-[36px] font-bold text-on-surface calorie-total">2270</div>
+</div>
+</div>
+<!-- Friday -->
+<div class="day-card bg-surface-container-lowest rounded-xl p-md shadow-[0px_4px_20px_rgba(0,0,0,0.03)] border border-outline-variant/20 flex flex-col gap-md transition-all hover:shadow-[0px_4px_24px_rgba(0,104,95,0.05)]" data-day="friday">
+<div class="flex items-center justify-between pb-sm border-b border-outline-variant/10">
+<h3 class="font-headline-md text-headline-md text-on-surface">Fri</h3>
+</div>
+<div class="flex flex-col gap-sm">
+<div class="flex flex-col gap-xs relative">
+<label class="font-label-md text-label-md text-on-surface-variant flex items-center gap-xs"><div class="w-2 h-2 rounded-full bg-primary-fixed"></div>Carbs</label>
+<input class="macro-input carbs-input w-full h-[48px] bg-surface text-on-surface font-body-md text-body-md border border-outline-variant/50 rounded-lg px-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-right" min="0" type="number" value="250"/>
+</div>
+<div class="flex flex-col gap-xs relative">
+<label class="font-label-md text-label-md text-on-surface-variant flex items-center gap-xs"><div class="w-2 h-2 rounded-full bg-tertiary-fixed"></div>Protein</label>
+<input class="macro-input protein-input w-full h-[48px] bg-surface text-on-surface font-body-md text-body-md border border-outline-variant/50 rounded-lg px-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-right" min="0" type="number" value="160"/>
+</div>
+<div class="flex flex-col gap-xs relative">
+<label class="font-label-md text-label-md text-on-surface-variant flex items-center gap-xs"><div class="w-2 h-2 rounded-full bg-secondary-fixed-dim"></div>Fats</label>
+<input class="macro-input fats-input w-full h-[48px] bg-surface text-on-surface font-body-md text-body-md border border-outline-variant/50 rounded-lg px-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-right" min="0" type="number" value="70"/>
+</div>
+</div>
+<div class="mt-auto pt-sm bg-surface-container-low rounded-lg p-sm flex flex-col items-center justify-center">
+<span class="font-label-md text-label-md text-on-surface-variant text-[12px] uppercase tracking-wider">Total Calories</span>
+<div class="font-data-display text-[28px] leading-[36px] font-bold text-on-surface calorie-total">2270</div>
+</div>
+</div>
+<!-- Saturday (Weekend subtle visual diff) -->
+<div class="day-card bg-surface-container-lowest lg:bg-surface-bright rounded-xl p-md shadow-[0px_4px_20px_rgba(0,0,0,0.03)] border border-outline-variant/20 flex flex-col gap-md transition-all hover:shadow-[0px_4px_24px_rgba(0,104,95,0.05)]" data-day="saturday">
+<div class="flex items-center justify-between pb-sm border-b border-outline-variant/10">
+<h3 class="font-headline-md text-headline-md text-on-surface-variant">Sat</h3>
+</div>
+<div class="flex flex-col gap-sm">
+<div class="flex flex-col gap-xs relative">
+<label class="font-label-md text-label-md text-on-surface-variant flex items-center gap-xs"><div class="w-2 h-2 rounded-full bg-primary-fixed"></div>Carbs</label>
+<input class="macro-input carbs-input w-full h-[48px] bg-surface text-on-surface font-body-md text-body-md border border-outline-variant/50 rounded-lg px-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-right" min="0" type="number" value="250"/>
+</div>
+<div class="flex flex-col gap-xs relative">
+<label class="font-label-md text-label-md text-on-surface-variant flex items-center gap-xs"><div class="w-2 h-2 rounded-full bg-tertiary-fixed"></div>Protein</label>
+<input class="macro-input protein-input w-full h-[48px] bg-surface text-on-surface font-body-md text-body-md border border-outline-variant/50 rounded-lg px-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-right" min="0" type="number" value="160"/>
+</div>
+<div class="flex flex-col gap-xs relative">
+<label class="font-label-md text-label-md text-on-surface-variant flex items-center gap-xs"><div class="w-2 h-2 rounded-full bg-secondary-fixed-dim"></div>Fats</label>
+<input class="macro-input fats-input w-full h-[48px] bg-surface text-on-surface font-body-md text-body-md border border-outline-variant/50 rounded-lg px-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-right" min="0" type="number" value="70"/>
+</div>
+</div>
+<div class="mt-auto pt-sm bg-surface-container-low rounded-lg p-sm flex flex-col items-center justify-center opacity-80">
+<span class="font-label-md text-label-md text-on-surface-variant text-[12px] uppercase tracking-wider">Total Calories</span>
+<div class="font-data-display text-[28px] leading-[36px] font-bold text-on-surface-variant calorie-total">2270</div>
+</div>
+</div>
+<!-- Sunday -->
+<div class="day-card bg-surface-container-lowest lg:bg-surface-bright rounded-xl p-md shadow-[0px_4px_20px_rgba(0,0,0,0.03)] border border-outline-variant/20 flex flex-col gap-md transition-all hover:shadow-[0px_4px_24px_rgba(0,104,95,0.05)]" data-day="sunday">
+<div class="flex items-center justify-between pb-sm border-b border-outline-variant/10">
+<h3 class="font-headline-md text-headline-md text-on-surface-variant">Sun</h3>
+</div>
+<div class="flex flex-col gap-sm">
+<div class="flex flex-col gap-xs relative">
+<label class="font-label-md text-label-md text-on-surface-variant flex items-center gap-xs"><div class="w-2 h-2 rounded-full bg-primary-fixed"></div>Carbs</label>
+<input class="macro-input carbs-input w-full h-[48px] bg-surface text-on-surface font-body-md text-body-md border border-outline-variant/50 rounded-lg px-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-right" min="0" type="number" value="250"/>
+</div>
+<div class="flex flex-col gap-xs relative">
+<label class="font-label-md text-label-md text-on-surface-variant flex items-center gap-xs"><div class="w-2 h-2 rounded-full bg-tertiary-fixed"></div>Protein</label>
+<input class="macro-input protein-input w-full h-[48px] bg-surface text-on-surface font-body-md text-body-md border border-outline-variant/50 rounded-lg px-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-right" min="0" type="number" value="160"/>
+</div>
+<div class="flex flex-col gap-xs relative">
+<label class="font-label-md text-label-md text-on-surface-variant flex items-center gap-xs"><div class="w-2 h-2 rounded-full bg-secondary-fixed-dim"></div>Fats</label>
+<input class="macro-input fats-input w-full h-[48px] bg-surface text-on-surface font-body-md text-body-md border border-outline-variant/50 rounded-lg px-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-right" min="0" type="number" value="70"/>
+</div>
+</div>
+<div class="mt-auto pt-sm bg-surface-container-low rounded-lg p-sm flex flex-col items-center justify-center opacity-80">
+<span class="font-label-md text-label-md text-on-surface-variant text-[12px] uppercase tracking-wider">Total Calories</span>
+<div class="font-data-display text-[28px] leading-[36px] font-bold text-on-surface-variant calorie-total">2270</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Mobile Bottom Nav -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 lg:hidden bg-surface dark:bg-surface-dim shadow-lg">
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-secondary-fixed-variant px-4 py-1 hover:bg-surface-container-high dark:hover:bg-surface-container-highest active:scale-90 transition-all duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md text-[10px] mt-1">Dashboard</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1 active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">calendar_month</span>
+<span class="font-label-md text-label-md text-[10px] mt-1">Targets</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-secondary-fixed-variant px-4 py-1 hover:bg-surface-container-high dark:hover:bg-surface-container-highest active:scale-90 transition-all duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined">restaurant_menu</span>
+<span class="font-label-md text-label-md text-[10px] mt-1">Foods</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-secondary-fixed-variant px-4 py-1 hover:bg-surface-container-high dark:hover:bg-surface-container-highest active:scale-90 transition-all duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-md text-label-md text-[10px] mt-1">Profile</span>
+</a>
+</nav>
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const dayCards = document.querySelectorAll('.day-card');
+            const copyBtn = document.getElementById('copyToAllBtn');
+
+            // Function to calculate and update calories for a specific card
+            const calculateCalories = (card) => {
+                const carbs = parseInt(card.querySelector('.carbs-input').value) || 0;
+                const protein = parseInt(card.querySelector('.protein-input').value) || 0;
+                const fats = parseInt(card.querySelector('.fats-input').value) || 0;
+                
+                const total = (carbs * 4) + (protein * 4) + (fats * 9);
+                card.querySelector('.calorie-total').textContent = total;
+            };
+
+            // Attach event listeners to all inputs
+            dayCards.forEach(card => {
+                const inputs = card.querySelectorAll('.macro-input');
+                inputs.forEach(input => {
+                    input.addEventListener('input', () => calculateCalories(card));
+                });
+                // Initial calculation
+                calculateCalories(card);
+            });
+
+            // Copy Monday's values to all other days
+            if(copyBtn) {
+                copyBtn.addEventListener('click', () => {
+                    const mondayCard = document.querySelector('.day-card[data-day="monday"]');
+                    if(mondayCard) {
+                        const mCarbs = mondayCard.querySelector('.carbs-input').value;
+                        const mProtein = mondayCard.querySelector('.protein-input').value;
+                        const mFats = mondayCard.querySelector('.fats-input').value;
+
+                        dayCards.forEach(card => {
+                            if(card.dataset.day !== 'monday') {
+                                card.querySelector('.carbs-input').value = mCarbs;
+                                card.querySelector('.protein-input').value = mProtein;
+                                card.querySelector('.fats-input').value = mFats;
+                                calculateCalories(card);
+                                
+                                // Brief visual feedback
+                                card.style.transform = 'scale(0.98)';
+                                setTimeout(() => card.style.transform = 'scale(1)', 150);
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    </script>
+</body></html>
