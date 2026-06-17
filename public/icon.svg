@@ -1,0 +1,17 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="112" fill="#00685f"/>
+  <g fill="none" stroke-linecap="round" transform="rotate(-90 256 256)">
+    <!-- carbs ring (outer) -->
+    <circle cx="256" cy="256" r="150" stroke="#00504a" stroke-width="34"/>
+    <circle cx="256" cy="256" r="150" stroke="#F59E0B" stroke-width="34"
+      stroke-dasharray="942" stroke-dashoffset="236"/>
+    <!-- protein ring (middle) -->
+    <circle cx="256" cy="256" r="106" stroke="#00504a" stroke-width="34"/>
+    <circle cx="256" cy="256" r="106" stroke="#3B82F6" stroke-width="34"
+      stroke-dasharray="666" stroke-dashoffset="200"/>
+    <!-- fats ring (inner) -->
+    <circle cx="256" cy="256" r="62" stroke="#00504a" stroke-width="34"/>
+    <circle cx="256" cy="256" r="62" stroke="#8B5CF6" stroke-width="34"
+      stroke-dasharray="390" stroke-dashoffset="156"/>
+  </g>
+</svg>
