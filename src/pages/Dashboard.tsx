@@ -17,17 +17,44 @@ import {
   round,
   type MacroGrams,
 } from '@/lib/macros'
-import { addDays, dayOfWeek, formatLong, isToday, todayISO } from '@/lib/date'
-import { deleteFoodLog, updateLogServings } from '@/lib/foods'
+import { addDays, dayOfWeek, formatLong, formatShort, isToday, todayISO } from '@/lib/date'
+import { copyDayFoods, deleteFoodLog, updateLogServings } from '@/lib/foods'
 import type { FoodLogWithFood } from '@/lib/database.types'
 
 const ZERO: MacroGrams = { carbs_g: 0, protein_g: 0, fats_g: 0 }
 
 export default function Dashboard() {
-  const { selectedDate, setSelectedDate, openAddFood, foodLogVersion, bumpFoodLogVersion } =
-    useAppShell()
+  const {
+    selectedDate,
+    setSelectedDate,
+    openAddFood,
+    foodLogVersion,
+    bumpFoodLogVersion,
+    copiedDay,
+    copyDay,
+    clearCopiedDay,
+  } = useAppShell()
   const { byDay, loading: targetsLoading } = useTargets()
   const { logs, loading: logsLoading, error } = useFoodLogs(selectedDate, foodLogVersion)
+
+  const [pasting, setPasting] = useState(false)
+  const [actionError, setActionError] = useState<string | null>(null)
+
+  const canPasteHere = copiedDay !== null && copiedDay.date !== selectedDate
+
+  async function handlePaste() {
+    if (!copiedDay) return
+    setPasting(true)
+    setActionError(null)
+    try {
+      await copyDayFoods(copiedDay.date, selectedDate)
+      bumpFoodLogVersion()
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : 'Failed to paste foods.')
+    } finally {
+      setPasting(false)
+    }
+  }
 
   const target = byDay[dayOfWeek(selectedDate)]
   const targetMacros: MacroGrams = target
@@ -56,29 +83,77 @@ export default function Dashboard() {
             {formatLong(selectedDate)}
           </p>
         </div>
-        <div className="flex items-center gap-sm rounded-full bg-surface-container-low p-1">
+        <div className="flex items-center gap-sm">
           <button
-            onClick={() => setSelectedDate(addDays(selectedDate, -1))}
-            className="flex items-center justify-center rounded-full p-2 text-on-surface-variant transition-colors hover:bg-surface-container-high"
-            aria-label="Previous day"
+            onClick={() => copyDay(selectedDate, logs.length)}
+            disabled={logsLoading || logs.length === 0}
+            className="flex items-center gap-xs rounded-full bg-surface-container-low px-3 py-2 font-label-md text-label-md text-on-surface-variant transition-colors hover:bg-surface-container-high disabled:cursor-not-allowed disabled:opacity-40"
+            aria-label="Copy this day's foods"
+            title="Copy this day's foods"
           >
-            <Icon name="chevron_left" />
+            <Icon name="content_copy" className="text-sm" />
+            <span className="hidden sm:inline">Copy day</span>
           </button>
-          <button
-            onClick={() => setSelectedDate(todayISO())}
-            className="px-3 font-label-md text-label-md text-primary"
-          >
-            Today
-          </button>
-          <button
-            onClick={() => setSelectedDate(addDays(selectedDate, 1))}
-            className="flex items-center justify-center rounded-full p-2 text-on-surface-variant transition-colors hover:bg-surface-container-high"
-            aria-label="Next day"
-          >
-            <Icon name="chevron_right" />
-          </button>
+          <div className="flex items-center gap-sm rounded-full bg-surface-container-low p-1">
+            <button
+              onClick={() => setSelectedDate(addDays(selectedDate, -1))}
+              className="flex items-center justify-center rounded-full p-2 text-on-surface-variant transition-colors hover:bg-surface-container-high"
+              aria-label="Previous day"
+            >
+              <Icon name="chevron_left" />
+            </button>
+            <button
+              onClick={() => setSelectedDate(todayISO())}
+              className="px-3 font-label-md text-label-md text-primary"
+            >
+              Today
+            </button>
+            <button
+              onClick={() => setSelectedDate(addDays(selectedDate, 1))}
+              className="flex items-center justify-center rounded-full p-2 text-on-surface-variant transition-colors hover:bg-surface-container-high"
+              aria-label="Next day"
+            >
+              <Icon name="chevron_right" />
+            </button>
+          </div>
         </div>
       </header>
+
+      {copiedDay && (
+        <div className="flex flex-col gap-sm rounded-2xl border border-primary/30 bg-primary-container/10 p-md shadow-card sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-sm text-on-surface">
+            <Icon name="content_paste" className="text-primary" />
+            <p className="font-body-md text-body-md">
+              {copiedDay.count} {copiedDay.count === 1 ? 'item' : 'items'} copied from{' '}
+              <span className="font-label-md text-label-md">{formatShort(copiedDay.date)}</span>
+            </p>
+          </div>
+          <div className="flex items-center gap-sm">
+            <button
+              onClick={handlePaste}
+              disabled={!canPasteHere || pasting}
+              className="flex items-center gap-xs rounded-full bg-primary px-4 py-2 font-label-md text-label-md text-on-primary transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+              title={canPasteHere ? 'Paste into this day' : 'Navigate to another day to paste'}
+            >
+              {pasting ? <Spinner className="h-4 w-4" /> : <Icon name="content_paste" className="text-sm" />}
+              Paste here
+            </button>
+            <button
+              onClick={clearCopiedDay}
+              className="rounded-full p-2 text-on-surface-variant transition-colors hover:bg-surface-container-high"
+              aria-label="Clear copied day"
+            >
+              <Icon name="close" className="text-sm" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {actionError && (
+        <p className="rounded-2xl bg-error-container px-md py-sm font-label-md text-label-md text-on-error-container">
+          {actionError}
+        </p>
+      )}
 
       {targetsLoading ? (
         <LoadingBlock label="Loading your targets…" />

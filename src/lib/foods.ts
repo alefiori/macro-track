@@ -142,6 +142,34 @@ export async function logFoodEntry(params: {
   if (error) throw new Error(error.message)
 }
 
+/**
+ * Copy every food log from one day into another, preserving meal and servings.
+ * Returns the number of entries copied. Existing entries on `toDate` are kept
+ * (this appends, it doesn't replace), so pasting twice duplicates.
+ */
+export async function copyDayFoods(fromDate: string, toDate: string): Promise<number> {
+  const userId = await currentUserId()
+  const { data, error } = await supabase
+    .from('food_logs')
+    .select('food_id, meal, servings')
+    .eq('log_date', fromDate)
+  if (error) throw new Error(error.message)
+
+  const rows = (data ?? []) as { food_id: string; meal: MealKey; servings: number }[]
+  if (rows.length === 0) return 0
+
+  const inserts = rows.map((r) => ({
+    user_id: userId,
+    food_id: r.food_id,
+    log_date: toDate,
+    meal: r.meal,
+    servings: r.servings,
+  }))
+  const { error: insErr } = await supabase.from('food_logs').insert(inserts)
+  if (insErr) throw new Error(insErr.message)
+  return rows.length
+}
+
 export async function updateLogServings(id: string, servings: number): Promise<void> {
   const { error } = await supabase.from('food_logs').update({ servings }).eq('id', id)
   if (error) throw new Error(error.message)

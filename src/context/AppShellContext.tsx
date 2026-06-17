@@ -11,6 +11,10 @@ interface AppShellValue {
   /** Bumped whenever food logs change, so views can refetch. */
   foodLogVersion: number
   bumpFoodLogVersion: () => void
+  /** A day's foods captured for pasting into another day, or null. */
+  copiedDay: { date: string; count: number } | null
+  copyDay: (date: string, count: number) => void
+  clearCopiedDay: () => void
   /** internal — consumed by AppLayout to render the modal */
   _addFood: { open: boolean; meal?: MealKey }
   _closeAddFood: () => void
@@ -22,12 +26,16 @@ export function AppShellProvider({ children }: { children: ReactNode }) {
   const [selectedDate, setSelectedDate] = useState<string>(todayISO())
   const [foodLogVersion, setFoodLogVersion] = useState(0)
   const [addFood, setAddFood] = useState<{ open: boolean; meal?: MealKey }>({ open: false })
+  const [copiedDay, setCopiedDay] = useState<{ date: string; count: number } | null>(null)
 
   const value: AppShellValue = {
     selectedDate,
     setSelectedDate,
     foodLogVersion,
     bumpFoodLogVersion: () => setFoodLogVersion((v) => v + 1),
+    copiedDay,
+    copyDay: (date, count) => setCopiedDay({ date, count }),
+    clearCopiedDay: () => setCopiedDay(null),
     openAddFood: (opts) => setAddFood({ open: true, meal: opts?.meal }),
     _addFood: addFood,
     _closeAddFood: () => setAddFood({ open: false }),
