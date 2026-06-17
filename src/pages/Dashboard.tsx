@@ -176,23 +176,23 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* Macro rings */}
-          <section className="grid grid-cols-1 gap-lg md:grid-cols-3">
+          {/* Macro rings — single horizontal box on mobile, separate cards on md+ */}
+          <section className="grid grid-cols-3 gap-2 rounded-2xl bg-surface-container-lowest p-md shadow-card md:gap-lg md:bg-transparent md:p-0 md:shadow-none">
             {MACROS.map((m) => {
               const c = consumed[m.field]
               const t = targetMacros[m.field]
               return (
                 <div
                   key={m.key}
-                  className="relative flex flex-col items-center overflow-hidden rounded-2xl bg-surface-container-lowest p-lg shadow-card"
+                  className="relative flex flex-col items-center overflow-hidden rounded-2xl md:bg-surface-container-lowest md:p-lg md:shadow-card"
                 >
                   <div
-                    className="absolute right-4 top-4 rounded-full p-2"
+                    className="absolute right-4 top-4 hidden rounded-full p-2 md:block"
                     style={{ color: m.color, backgroundColor: m.tint }}
                   >
                     <Icon name={m.icon} className="text-sm" />
                   </div>
-                  <h3 className="mb-6 self-start font-label-md text-label-md text-on-surface-variant">
+                  <h3 className="mb-2 font-label-md text-label-md text-on-surface-variant md:mb-6 md:self-start">
                     {m.label}
                   </h3>
                   <ProgressRing
@@ -200,19 +200,19 @@ export default function Dashboard() {
                     target={t}
                     color={m.color}
                     trackColor={m.tint}
-                    size={120}
+                    className="h-[88px] w-[88px] md:h-[120px] md:w-[120px]"
                   >
-                    <span className="font-headline-md text-headline-md text-on-surface">
-                      {round(c)}
-                      <span className="text-sm font-normal text-on-surface-variant">g</span>
+                    <span className="font-headline-md text-xl text-on-surface md:text-headline-md">
+                      {round(c, 0)}
+                      <span className="text-xs font-normal text-on-surface-variant md:text-sm">g</span>
                     </span>
-                    <span className="mt-1 w-12 border-t border-outline-variant pt-1 text-center text-xs text-on-surface-variant">
-                      {round(t)}g
+                    <span className="mt-1 w-10 border-t border-outline-variant pt-1 text-center text-xs text-on-surface-variant md:w-12">
+                      {round(t, 0)}g
                     </span>
                   </ProgressRing>
-                  <div className="mt-4 text-center">
-                    <p className="font-label-md text-label-md text-on-surface">
-                      <span style={{ color: m.color }}>{remaining(t, c)}g</span> remaining
+                  <div className="mt-2 text-center md:mt-4">
+                    <p className="font-label-md text-xs text-on-surface md:text-label-md">
+                      <span style={{ color: m.color }}>{round(remaining(t, c), 0)}g</span> remaining
                     </p>
                   </div>
                 </div>

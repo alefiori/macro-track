@@ -11,6 +11,7 @@ export function ProgressRing({
   color,
   trackColor,
   size = 120,
+  className,
   children,
 }: {
   consumed: number
@@ -18,12 +19,16 @@ export function ProgressRing({
   color: string
   trackColor: string
   size?: number
+  className?: string
   children?: React.ReactNode
 }) {
   const offset = ringOffset(consumed, target)
 
   return (
-    <div className="relative" style={{ width: size, height: size }}>
+    <div
+      className={`relative ${className ?? ''}`}
+      style={className ? undefined : { width: size, height: size }}
+    >
       <svg className="h-full w-full" viewBox="0 0 100 100">
         <circle
           cx="50"
