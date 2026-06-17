@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from '@/context/AuthContext'
 import { AppShellProvider } from '@/context/AppShellContext'
+import { ProfileProvider } from '@/context/ProfileContext'
 import { RequireAuth } from '@/components/RequireAuth'
 import AppLayout from '@/components/layout/AppLayout'
 import AuthPage from '@/pages/AuthPage'
@@ -25,9 +26,11 @@ export default function App() {
           <Route
             element={
               <RequireAuth>
-                <AppShellProvider>
-                  <AppLayout />
-                </AppShellProvider>
+                <ProfileProvider>
+                  <AppShellProvider>
+                    <AppLayout />
+                  </AppShellProvider>
+                </ProfileProvider>
               </RequireAuth>
             }
           >

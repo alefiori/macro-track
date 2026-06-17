@@ -10,6 +10,7 @@
  */
 import { round } from './macros'
 import { fetchWithRetry } from './retry'
+import { DEFAULT_OFF_LANGUAGE } from './constants'
 import type { ExternalFood } from './foodSources'
 
 const SEARCH_URL = 'https://world.openfoodfacts.org/cgi/search.pl'
@@ -22,6 +23,19 @@ interface OffProduct {
   product_name?: string
   brands?: string
   nutriments?: Record<string, number | string | undefined>
+  // Localized product names (e.g. product_name_it) are requested per language.
+  [key: `product_name_${string}`]: string | undefined
+}
+
+/** Pick the language-specific product name when present, else the generic one. */
+function localizedName(p: OffProduct, lang: string): string {
+  const localized = p[`product_name_${lang}`]
+  return (localized || p.product_name || '').trim()
+}
+
+/** Fields requested from OFF, including the localized name for `lang`. */
+function fieldsFor(lang: string): string {
+  return `code,product_name,product_name_${lang},brands,nutriments`
 }
 
 function num(v: number | string | undefined): number | null {
@@ -34,7 +48,10 @@ function num(v: number | string | undefined): number | null {
  * Normalize one OFF product to per-serving macros.
  * Returns null when any of the three macros is missing (we skip those).
  */
-export function normalizeProduct(p: OffProduct): ExternalFood | null {
+export function normalizeProduct(
+  p: OffProduct,
+  lang: string = DEFAULT_OFF_LANGUAGE,
+): ExternalFood | null {
   const code = p.code
   const carbs100 = num(p.nutriments?.carbohydrates_100g)
   const protein100 = num(p.nutriments?.proteins_100g)
@@ -44,7 +61,7 @@ export function normalizeProduct(p: OffProduct): ExternalFood | null {
     return null
   }
 
-  const name = (p.product_name || '').trim()
+  const name = localizedName(p, lang)
   if (!name) return null
 
   // Everything is stored on a fixed 100 g basis using the _100g values.
@@ -65,6 +82,7 @@ export function normalizeProduct(p: OffProduct): ExternalFood | null {
 export async function searchOpenFoodFacts(
   query: string,
   signal?: AbortSignal,
+  lang: string = DEFAULT_OFF_LANGUAGE,
 ): Promise<ExternalFood[]> {
   const q = query.trim()
   if (!q) return []
@@ -75,7 +93,9 @@ export async function searchOpenFoodFacts(
     action: 'process',
     json: '1',
     page_size: '20',
-    fields: 'code,product_name,brands,nutriments',
+    // lc localizes the response/ranking; fields requests the localized name.
+    lc: lang,
+    fields: fieldsFor(lang),
   })
 
   const res = await fetchWithRetry(
@@ -89,7 +109,7 @@ export async function searchOpenFoodFacts(
   const seen = new Set<string>()
   const out: ExternalFood[] = []
   for (const p of data.products ?? []) {
-    const food = normalizeProduct(p)
+    const food = normalizeProduct(p, lang)
     if (food && !seen.has(food.externalId)) {
       seen.add(food.externalId)
       out.push(food)
@@ -102,12 +122,14 @@ export async function searchOpenFoodFacts(
 export async function lookupBarcode(
   barcode: string,
   signal?: AbortSignal,
+  lang: string = DEFAULT_OFF_LANGUAGE,
 ): Promise<ExternalFood | null> {
   const code = barcode.trim()
   if (!code) return null
 
   const params = new URLSearchParams({
-    fields: 'code,product_name,brands,nutriments',
+    lc: lang,
+    fields: fieldsFor(lang),
   })
   const res = await fetchWithRetry(
     `${PRODUCT_URL}/${encodeURIComponent(code)}.json?${params}`,
@@ -118,5 +140,5 @@ export async function lookupBarcode(
 
   const data = (await res.json()) as { status?: number; product?: OffProduct }
   if (data.status !== 1 || !data.product) return null
-  return normalizeProduct(data.product)
+  return normalizeProduct(data.product, lang)
 }

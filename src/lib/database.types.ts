@@ -35,6 +35,13 @@ export type Food = {
   created_at: string
 }
 
+export type Profile = {
+  id: string
+  off_language: string
+  created_at: string
+  updated_at: string
+}
+
 export type FoodLog = {
   id: string
   user_id: string
@@ -70,6 +77,13 @@ export interface Database {
         Row: FoodLog
         Insert: Omit<FoodLog, 'id' | 'created_at'> & Partial<Pick<FoodLog, 'id' | 'created_at'>>
         Update: Partial<FoodLog>
+        Relationships: []
+      }
+      profiles: {
+        Row: Profile
+        Insert: Omit<Profile, 'created_at' | 'updated_at'> &
+          Partial<Pick<Profile, 'off_language' | 'created_at' | 'updated_at'>>
+        Update: Partial<Profile>
         Relationships: []
       }
     }

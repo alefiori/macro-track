@@ -25,7 +25,7 @@ const externalId = (source: string, id: string) => `${source}:${id}`
  * present locally (same source + id) are de-duplicated out, as are duplicates
  * across the two external sources.
  */
-export function useFoodSearch(query: string) {
+export function useFoodSearch(query: string, offLanguage?: string) {
   const debounced = useDebounce(query.trim(), 350)
   const [state, setState] = useState<State>({ results: [], loading: false, error: null })
 
@@ -49,7 +49,9 @@ export function useFoodSearch(query: string) {
           .limit(20)
 
         // External sources never reject the whole search — failures degrade to [].
-        const offPromise = searchOpenFoodFacts(debounced, controller.signal).catch(() => [])
+        const offPromise = searchOpenFoodFacts(debounced, controller.signal, offLanguage).catch(
+          () => [],
+        )
         const usdaPromise = searchUsda(debounced, controller.signal).catch(() => [])
 
         const [{ data: localData, error: localErr }, offData, usdaData] = await Promise.all([
@@ -97,7 +99,7 @@ export function useFoodSearch(query: string) {
       cancelled = true
       controller.abort()
     }
-  }, [debounced])
+  }, [debounced, offLanguage])
 
   return state
 }

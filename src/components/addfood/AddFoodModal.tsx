@@ -12,6 +12,7 @@ const BarcodeScanner = lazy(() =>
 )
 import { useFoodSearch, type SearchResult } from '@/hooks/useFoodSearch'
 import { useAppShell } from '@/context/AppShellContext'
+import { useProfile } from '@/context/ProfileContext'
 import { MACROS, MEALS, type MealKey } from '@/lib/constants'
 import { calories, caloriesForServings, scaleMacros, round, type MacroGrams } from '@/lib/macros'
 import { logFoodEntry, upsertExternalFood, type CustomFoodPrefill } from '@/lib/foods'
@@ -49,6 +50,7 @@ export function AddFoodModal({
 }) {
   const navigate = useNavigate()
   const { selectedDate, bumpFoodLogVersion } = useAppShell()
+  const { offLanguage } = useProfile()
 
   const [query, setQuery] = useState('')
   const [selected, setSelected] = useState<SearchResult | null>(null)
@@ -60,7 +62,7 @@ export function AddFoodModal({
   const [lookingUp, setLookingUp] = useState(false)
   const [lookupMsg, setLookupMsg] = useState<string | null>(null)
 
-  const { results, loading, error: searchError } = useFoodSearch(query)
+  const { results, loading, error: searchError } = useFoodSearch(query, offLanguage)
 
   // Reset transient state whenever the modal opens.
   useEffect(() => {
@@ -109,7 +111,7 @@ export function AddFoodModal({
     setLookupMsg(null)
     setLookingUp(true)
     try {
-      const food = await lookupBarcode(code)
+      const food = await lookupBarcode(code, undefined, offLanguage)
       if (food) {
         setSelected({
           kind: 'external',
@@ -125,7 +127,7 @@ export function AddFoodModal({
     } finally {
       setLookingUp(false)
     }
-  }, [])
+  }, [offLanguage])
 
   function goCreateCustom(prefill?: CustomFoodPrefill) {
     onClose()

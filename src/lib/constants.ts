@@ -57,3 +57,25 @@ export const TARGET_DAYS: { dow: number; short: string; long: string }[] = [
 ]
 
 export const SERVING_UNITS = ['g', 'ml', 'oz', 'cup', 'piece', 'tbsp', 'tsp', 'serving']
+
+/**
+ * Languages selectable for Open Food Facts results (ISO 639-1). Used both for
+ * the OFF `lc` query param and to prefer the localized product name. Keep this
+ * list in sync with the off_language check constraint in the profiles table.
+ */
+export interface OffLanguage {
+  code: string
+  label: string
+}
+
+export const OFF_LANGUAGES: OffLanguage[] = [
+  { code: 'en', label: 'English' },
+  { code: 'it', label: 'Italiano' },
+  { code: 'fr', label: 'Français' },
+  { code: 'es', label: 'Español' },
+  { code: 'de', label: 'Deutsch' },
+  { code: 'pt', label: 'Português' },
+  { code: 'nl', label: 'Nederlands' },
+]
+
+export const DEFAULT_OFF_LANGUAGE = 'en'
