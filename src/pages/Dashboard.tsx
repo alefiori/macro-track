@@ -212,7 +212,7 @@ export default function Dashboard() {
                   </ProgressRing>
                   <div className="mt-2 text-center md:mt-4">
                     <p className="font-label-md text-xs text-on-surface md:text-label-md">
-                      <span style={{ color: m.color }}>{round(remaining(t, c), 0)}g</span> remaining
+                      <span style={{ color: m.textColor }}>{round(remaining(t, c), 0)}g</span> remaining
                     </p>
                   </div>
                 </div>

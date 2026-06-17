@@ -195,6 +195,7 @@ export function AddFoodModal({
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
+                aria-label="Search foods"
                 placeholder="Search your foods and food databases…"
                 className="h-[48px] w-full rounded-lg border border-outline-variant bg-surface pl-[40px] pr-4 font-body-md text-body-md text-on-surface outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
               />
@@ -415,7 +416,10 @@ export function AddFoodModal({
 
                 {/* Servings */}
                 <div>
-                  <label className="mb-2 block font-label-md text-label-md text-on-surface-variant">
+                  <label
+                    htmlFor="servings-input"
+                    className="mb-2 block font-label-md text-label-md text-on-surface-variant"
+                  >
                     Servings
                   </label>
                   <div className="flex items-center gap-sm">
@@ -427,6 +431,7 @@ export function AddFoodModal({
                       <Icon name="remove" />
                     </button>
                     <input
+                      id="servings-input"
                       type="number"
                       min={0.25}
                       step={0.25}

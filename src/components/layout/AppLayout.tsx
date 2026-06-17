@@ -74,6 +74,7 @@ function Sidebar() {
           </div>
           <button
             onClick={() => signOut()}
+            aria-label="Sign out"
             title="Sign out"
             className="shrink-0 rounded-full p-2 text-on-surface-variant transition-colors hover:bg-error-container hover:text-on-error-container"
           >
@@ -96,9 +97,10 @@ function Sidebar() {
 function TopAppBar() {
   return (
     <nav className="fixed top-0 z-40 flex w-full items-center justify-between bg-surface px-container-margin-mobile py-md shadow-sm lg:hidden">
-      <div className="font-headline-md text-headline-md font-bold text-primary">MacroTrack</div>
+      <h1 className="font-headline-md text-headline-md font-bold text-primary">MacroTrack</h1>
       <NavLink
         to="/profile"
+        aria-label="Profile"
         className="rounded-full p-2 text-on-surface-variant transition-colors hover:bg-surface-container-low active:scale-95"
       >
         <Icon name="account_circle" />

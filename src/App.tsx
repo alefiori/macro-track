@@ -1,21 +1,27 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from '@/context/AuthContext'
 import { AppShellProvider } from '@/context/AppShellContext'
 import { ProfileProvider } from '@/context/ProfileContext'
 import { RequireAuth } from '@/components/RequireAuth'
+import { LoadingBlock } from '@/components/ui/Spinner'
 import AppLayout from '@/components/layout/AppLayout'
-import AuthPage from '@/pages/AuthPage'
-import ForgotPassword from '@/pages/ForgotPassword'
-import Dashboard from '@/pages/Dashboard'
-import Targets from '@/pages/Targets'
-import MyFoods from '@/pages/MyFoods'
-import CreateCustomFood from '@/pages/CreateCustomFood'
-import Profile from '@/pages/Profile'
+
+// Route-level code splitting: each page ships in its own chunk so the initial
+// load only pulls in the route the user actually lands on.
+const AuthPage = lazy(() => import('@/pages/AuthPage'))
+const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'))
+const Dashboard = lazy(() => import('@/pages/Dashboard'))
+const Targets = lazy(() => import('@/pages/Targets'))
+const MyFoods = lazy(() => import('@/pages/MyFoods'))
+const CreateCustomFood = lazy(() => import('@/pages/CreateCustomFood'))
+const Profile = lazy(() => import('@/pages/Profile'))
 
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <Suspense fallback={<LoadingBlock label="Loading…" />}>
         <Routes>
           {/* Public auth routes */}
           <Route path="/signin" element={<AuthPage initialTab="signin" />} />
@@ -44,6 +50,7 @@ export default function App() {
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </Suspense>
       </AuthProvider>
     </BrowserRouter>
   )

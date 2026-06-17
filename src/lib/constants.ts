@@ -21,16 +21,19 @@ export interface MacroMeta {
   key: MacroKey
   label: string
   field: 'carbs_g' | 'protein_g' | 'fats_g'
+  /** Bright accent for graphics only (rings, dots) — too light for text on white. */
   color: string
+  /** Darkened accent that meets WCAG AA (≥4.5:1) as small text on the light surface. */
+  textColor: string
   tint: string
   icon: string
 }
 
 /** Macro accent colors, used consistently everywhere (rings, dots, inputs). */
 export const MACROS: MacroMeta[] = [
-  { key: 'carbs', label: 'Carbs', field: 'carbs_g', color: '#F59E0B', tint: '#FEF3C7', icon: 'bakery_dining' },
-  { key: 'protein', label: 'Protein', field: 'protein_g', color: '#3B82F6', tint: '#DBEAFE', icon: 'set_meal' },
-  { key: 'fats', label: 'Fats', field: 'fats_g', color: '#8B5CF6', tint: '#EDE9FE', icon: 'water_drop' },
+  { key: 'carbs', label: 'Carbs', field: 'carbs_g', color: '#F59E0B', textColor: '#B45309', tint: '#FEF3C7', icon: 'bakery_dining' },
+  { key: 'protein', label: 'Protein', field: 'protein_g', color: '#3B82F6', textColor: '#1D4ED8', tint: '#DBEAFE', icon: 'set_meal' },
+  { key: 'fats', label: 'Fats', field: 'fats_g', color: '#8B5CF6', textColor: '#6D28D9', tint: '#EDE9FE', icon: 'water_drop' },
 ]
 
 /** Weekday labels indexed by JS getDay() (0 = Sunday). */

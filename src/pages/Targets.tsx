@@ -142,6 +142,7 @@ export default function Targets() {
                     </h3>
                     <button
                       onClick={() => copyToAll(dow)}
+                      aria-label={`Copy ${short} to all days`}
                       title={`Copy ${short} to all days`}
                       className="rounded-full p-1 text-outline-variant transition-colors hover:bg-surface-container-high hover:text-primary"
                     >
@@ -152,7 +153,10 @@ export default function Targets() {
                   <div className="flex flex-col gap-sm">
                     {MACROS.map((m) => (
                       <div key={m.key} className="flex flex-col gap-xs">
-                        <label className="flex items-center gap-xs font-label-md text-label-md text-on-surface-variant">
+                        <label
+                          htmlFor={`target-${dow}-${m.key}`}
+                          className="flex items-center gap-xs font-label-md text-label-md text-on-surface-variant"
+                        >
                           <span
                             className="h-2 w-2 rounded-full"
                             style={{ backgroundColor: m.color }}
@@ -160,6 +164,7 @@ export default function Targets() {
                           {m.label} (g)
                         </label>
                         <input
+                          id={`target-${dow}-${m.key}`}
                           type="number"
                           min={0}
                           placeholder="0"
