@@ -1,13 +1,18 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { supabase } from '@/lib/supabase'
-import { DEFAULT_OFF_LANGUAGE } from '@/lib/constants'
+import { DEFAULT_LOCALE, isLocale, type Locale } from '@/lib/i18n'
 import { useAuth } from '@/context/AuthContext'
 
 interface ProfileValue {
-  /** Preferred Open Food Facts language (ISO 639-1). */
+  /**
+   * The user's single language preference. Drives both the UI language and the
+   * Open Food Facts result language. Persisted in `profiles.off_language`.
+   */
+  locale: Locale
+  /** Persist a new locale for the current user. */
+  setLocale: (code: Locale) => Promise<void>
+  /** Alias of {@link locale} as a plain string, for the OFF `lc` query param. */
   offLanguage: string
-  /** Persist a new OFF language for the current user. */
-  setOffLanguage: (code: string) => Promise<void>
   loading: boolean
   error: string | null
 }
@@ -16,7 +21,7 @@ const ProfileContext = createContext<ProfileValue | undefined>(undefined)
 
 export function ProfileProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
-  const [offLanguage, setLang] = useState(DEFAULT_OFF_LANGUAGE)
+  const [locale, setLang] = useState<Locale>(DEFAULT_LOCALE)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -32,7 +37,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       .then(({ data, error }) => {
         if (cancelled) return
         if (error) setError(error.message)
-        else if (data) setLang(data.off_language)
+        else if (data && isLocale(data.off_language)) setLang(data.off_language)
         setLoading(false)
       })
     return () => {
@@ -40,9 +45,9 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     }
   }, [user])
 
-  async function setOffLanguage(code: string) {
+  async function setLocale(code: Locale) {
     if (!user) return
-    const previous = offLanguage
+    const previous = locale
     setLang(code) // optimistic
     setError(null)
     // Upsert covers the rare case where the signup trigger hasn't created a row.
@@ -57,7 +62,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <ProfileContext.Provider value={{ offLanguage, setOffLanguage, loading, error }}>
+    <ProfileContext.Provider value={{ locale, setLocale, offLanguage: locale, loading, error }}>
       {children}
     </ProfileContext.Provider>
   )

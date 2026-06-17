@@ -4,22 +4,22 @@ export type MealKey = 'breakfast' | 'lunch' | 'dinner' | 'snack'
 
 export interface MealMeta {
   key: MealKey
-  label: string
   icon: string // Material Symbols name
 }
 
+/** Display labels come from the i18n catalog under `meal.<key>`. */
 export const MEALS: MealMeta[] = [
-  { key: 'breakfast', label: 'Breakfast', icon: 'wb_sunny' },
-  { key: 'lunch', label: 'Lunch', icon: 'light_mode' },
-  { key: 'dinner', label: 'Dinner', icon: 'nights_stay' },
-  { key: 'snack', label: 'Snack', icon: 'cookie' },
+  { key: 'breakfast', icon: 'wb_sunny' },
+  { key: 'lunch', icon: 'light_mode' },
+  { key: 'dinner', icon: 'nights_stay' },
+  { key: 'snack', icon: 'cookie' },
 ]
 
 export type MacroKey = 'carbs' | 'protein' | 'fats'
 
 export interface MacroMeta {
   key: MacroKey
-  label: string
+  /** Display labels come from the i18n catalog under `macro.<key>`. */
   field: 'carbs_g' | 'protein_g' | 'fats_g'
   /** Bright accent for graphics only (rings, dots) — too light for text on white. */
   color: string
@@ -31,9 +31,9 @@ export interface MacroMeta {
 
 /** Macro accent colors, used consistently everywhere (rings, dots, inputs). */
 export const MACROS: MacroMeta[] = [
-  { key: 'carbs', label: 'Carbs', field: 'carbs_g', color: '#F59E0B', textColor: '#B45309', tint: '#FEF3C7', icon: 'bakery_dining' },
-  { key: 'protein', label: 'Protein', field: 'protein_g', color: '#3B82F6', textColor: '#1D4ED8', tint: '#DBEAFE', icon: 'set_meal' },
-  { key: 'fats', label: 'Fats', field: 'fats_g', color: '#8B5CF6', textColor: '#6D28D9', tint: '#EDE9FE', icon: 'water_drop' },
+  { key: 'carbs', field: 'carbs_g', color: '#F59E0B', textColor: '#B45309', tint: '#FEF3C7', icon: 'bakery_dining' },
+  { key: 'protein', field: 'protein_g', color: '#3B82F6', textColor: '#1D4ED8', tint: '#DBEAFE', icon: 'set_meal' },
+  { key: 'fats', field: 'fats_g', color: '#EF4444', textColor: '#B91C1C', tint: '#FEE2E2', icon: 'water_drop' },
 ]
 
 /** Weekday labels indexed by JS getDay() (0 = Sunday). */
@@ -62,23 +62,8 @@ export const TARGET_DAYS: { dow: number; short: string; long: string }[] = [
 export const SERVING_UNITS = ['g', 'ml', 'oz', 'cup', 'piece', 'tbsp', 'tsp', 'serving']
 
 /**
- * Languages selectable for Open Food Facts results (ISO 639-1). Used both for
- * the OFF `lc` query param and to prefer the localized product name. Keep this
- * list in sync with the off_language check constraint in the profiles table.
+ * Default language (ISO 639-1) for Open Food Facts results when no profile
+ * preference is loaded. The selectable language list now lives in the i18n
+ * module (`LOCALES`), since one preference drives both UI and OFF language.
  */
-export interface OffLanguage {
-  code: string
-  label: string
-}
-
-export const OFF_LANGUAGES: OffLanguage[] = [
-  { code: 'en', label: 'English' },
-  { code: 'it', label: 'Italiano' },
-  { code: 'fr', label: 'Français' },
-  { code: 'es', label: 'Español' },
-  { code: 'de', label: 'Deutsch' },
-  { code: 'pt', label: 'Português' },
-  { code: 'nl', label: 'Nederlands' },
-]
-
 export const DEFAULT_OFF_LANGUAGE = 'en'

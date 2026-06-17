@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
+import { useI18n } from '@/context/I18nContext'
 import { Icon } from '@/components/ui/Icon'
 import { Spinner } from '@/components/ui/Spinner'
 
@@ -9,6 +10,7 @@ const inputClass =
 
 export default function ForgotPassword() {
   const { resetPassword } = useAuth()
+  const { t } = useI18n()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [busy, setBusy] = useState(false)
@@ -23,7 +25,7 @@ export default function ForgotPassword() {
       await resetPassword(email)
       setSent(true)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong.')
+      setError(err instanceof Error ? err.message : t('auth.somethingWrong'))
     } finally {
       setBusy(false)
     }
@@ -40,24 +42,24 @@ export default function ForgotPassword() {
               <Icon name="lock_reset" fill className="text-[32px] text-primary" />
             </div>
             <h1 className="font-headline-lg-mobile text-headline-lg-mobile text-primary">
-              Reset password
+              {t('forgotPassword.title')}
             </h1>
             <p className="font-body-md text-body-md text-on-surface-variant">
-              Enter your email and we’ll send you a reset link.
+              {t('forgotPassword.instruction')}
             </p>
           </div>
 
           {sent ? (
             <div className="flex flex-col gap-md">
               <p className="rounded-lg bg-primary-container/10 px-md py-sm font-label-md text-label-md text-primary">
-                If an account exists for {email}, a reset link is on its way.
+                {t('forgotPassword.linkSent', { email })}
               </p>
               <button
                 type="button"
                 onClick={() => navigate('/signin')}
                 className="flex min-h-[48px] w-full items-center justify-center rounded-lg bg-primary font-label-md text-label-md text-on-primary shadow-sm transition-all hover:bg-on-primary-fixed-variant active:scale-[0.98]"
               >
-                Back to sign in
+                {t('forgotPassword.backToSignIn')}
               </button>
             </div>
           ) : (
@@ -69,7 +71,7 @@ export default function ForgotPassword() {
               )}
               <div className="flex flex-col gap-xs">
                 <label className="font-label-md text-label-md text-on-surface" htmlFor="email">
-                  Email Address
+                  {t('auth.emailAddress')}
                 </label>
                 <input
                   id="email"
@@ -87,14 +89,14 @@ export default function ForgotPassword() {
                 disabled={busy}
                 className="mt-sm flex min-h-[48px] w-full items-center justify-center gap-sm rounded-lg bg-primary font-label-md text-label-md text-on-primary shadow-sm transition-all hover:bg-on-primary-fixed-variant hover:shadow-md active:scale-[0.98] disabled:opacity-60"
               >
-                {busy ? <Spinner className="h-4 w-4" /> : 'Send reset link'}
+                {busy ? <Spinner className="h-4 w-4" /> : t('forgotPassword.sendResetLink')}
               </button>
               <button
                 type="button"
                 onClick={() => navigate('/signin')}
                 className="text-center font-label-md text-label-md text-primary hover:text-on-primary-fixed-variant"
               >
-                Back to sign in
+                {t('forgotPassword.backToSignIn')}
               </button>
             </form>
           )}

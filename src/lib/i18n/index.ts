@@ -1,0 +1,88 @@
+/**
+ * Lightweight i18n core. No runtime dependency: catalogs are plain nested
+ * objects, `translate()` resolves dot-paths and interpolates `{name}`
+ * placeholders. The selected locale is the same value stored in
+ * `profiles.off_language`, so one preference drives both the UI language and
+ * the Open Food Facts result language.
+ */
+import { en } from './locales/en'
+import { it } from './locales/it'
+import { fr } from './locales/fr'
+import { es } from './locales/es'
+import { de } from './locales/de'
+import { pt } from './locales/pt'
+import { nl } from './locales/nl'
+
+/** Same nested shape as the English catalog, but with arbitrary string leaves. */
+type Localized<T> = { [K in keyof T]: T[K] extends string ? string : Localized<T[K]> }
+
+/** Shape every locale must satisfy (the English catalog is canonical). */
+export type Translation = Localized<typeof en>
+
+/** Supported locale codes — kept in sync with the OFF language list. */
+export type Locale = 'en' | 'it' | 'fr' | 'es' | 'de' | 'pt' | 'nl'
+
+export const DEFAULT_LOCALE: Locale = 'en'
+
+export const translations: Record<Locale, Translation> = { en, it, fr, es, de, pt, nl }
+
+/** Selectable languages (endonyms — shown untranslated in the picker). */
+export const LOCALES: { code: Locale; label: string }[] = [
+  { code: 'en', label: 'English' },
+  { code: 'it', label: 'Italiano' },
+  { code: 'fr', label: 'Français' },
+  { code: 'es', label: 'Español' },
+  { code: 'de', label: 'Deutsch' },
+  { code: 'pt', label: 'Português' },
+  { code: 'nl', label: 'Nederlands' },
+]
+
+export function isLocale(code: string): code is Locale {
+  return code in translations
+}
+
+/**
+ * Best-effort locale from the browser's languages, for pre-login screens where
+ * no profile preference is available yet. Falls back to {@link DEFAULT_LOCALE}.
+ */
+export function detectBrowserLocale(): Locale {
+  const langs = typeof navigator !== 'undefined' ? navigator.languages ?? [navigator.language] : []
+  for (const lang of langs) {
+    const code = lang?.slice(0, 2).toLowerCase()
+    if (code && isLocale(code)) return code
+  }
+  return DEFAULT_LOCALE
+}
+
+/** All dot-path keys into the catalog, e.g. `"dashboard.today"`. */
+export type TranslationKey = Paths<Translation>
+
+type Paths<T> = {
+  [K in keyof T & string]: T[K] extends string ? K : `${K}.${Paths<T[K]>}`
+}[keyof T & string]
+
+type Params = Record<string, string | number>
+
+function resolve(obj: unknown, path: string): string | undefined {
+  const value = path.split('.').reduce<unknown>((acc, part) => {
+    if (acc && typeof acc === 'object') return (acc as Record<string, unknown>)[part]
+    return undefined
+  }, obj)
+  return typeof value === 'string' ? value : undefined
+}
+
+function interpolate(template: string, params?: Params): string {
+  if (!params) return template
+  return template.replace(/\{(\w+)\}/g, (match, name: string) =>
+    name in params ? String(params[name]) : match,
+  )
+}
+
+/**
+ * Resolve a key for a locale, with `{param}` interpolation. Falls back to the
+ * English string, then to the raw key, so a missing translation never throws.
+ */
+export function translate(locale: Locale, key: TranslationKey, params?: Params): string {
+  const template = resolve(translations[locale], key) ?? resolve(en, key) ?? key
+  return interpolate(template, params)
+}

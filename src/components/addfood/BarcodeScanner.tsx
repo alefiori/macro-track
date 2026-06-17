@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { BrowserMultiFormatReader, type IScannerControls } from '@zxing/browser'
 import { BarcodeFormat, DecodeHintType } from '@zxing/library'
+import { useI18n } from '@/context/I18nContext'
+import type { TranslationKey } from '@/lib/i18n'
 import { Icon } from '@/components/ui/Icon'
 import { Spinner } from '@/components/ui/Spinner'
 
@@ -12,19 +14,20 @@ const PRODUCT_FORMATS = [
   BarcodeFormat.UPC_E,
 ]
 
-function describeCameraError(err: unknown): string {
+/** Map a getUserMedia error to a translation key for a friendly message. */
+function cameraErrorKey(err: unknown): TranslationKey {
   const name = err instanceof Error ? err.name : ''
   switch (name) {
     case 'NotAllowedError':
     case 'SecurityError':
-      return 'Camera access was denied. Allow camera permission in your browser, then try again.'
+      return 'scanner.denied'
     case 'NotFoundError':
     case 'OverconstrainedError':
-      return 'No camera was found on this device.'
+      return 'scanner.notFound'
     case 'NotReadableError':
-      return 'The camera is already in use by another app.'
+      return 'scanner.inUse'
     default:
-      return 'Could not start the camera. You can search or add the food manually.'
+      return 'scanner.genericError'
   }
 }
 
@@ -40,10 +43,11 @@ export function BarcodeScanner({
   onDetected: (code: string) => void
   onClose: () => void
 }) {
+  const { t } = useI18n()
   const videoRef = useRef<HTMLVideoElement>(null)
   const controlsRef = useRef<IScannerControls | null>(null)
   const [status, setStatus] = useState<'starting' | 'scanning' | 'error'>('starting')
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [errorKey, setErrorKey] = useState<TranslationKey | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -74,7 +78,7 @@ export function BarcodeScanner({
         setStatus('scanning')
       } catch (err) {
         if (cancelled) return
-        setErrorMsg(describeCameraError(err))
+        setErrorKey(cameraErrorKey(err))
         setStatus('error')
       }
     }
@@ -89,11 +93,11 @@ export function BarcodeScanner({
   return (
     <div className="absolute inset-0 z-[70] flex flex-col bg-black">
       <header className="flex items-center justify-between gap-md p-md text-white">
-        <h2 className="font-headline-md text-headline-md">Scan barcode</h2>
+        <h2 className="font-headline-md text-headline-md">{t('scanner.title')}</h2>
         <button
           onClick={onClose}
           className="rounded-full bg-white/10 p-2 transition-colors hover:bg-white/20"
-          aria-label="Close scanner"
+          aria-label={t('scanner.closeScanner')}
         >
           <Icon name="close" />
         </button>
@@ -109,7 +113,7 @@ export function BarcodeScanner({
               <div className="h-[28%] w-[78%] max-w-sm rounded-2xl border-2 border-white/80 shadow-[0_0_0_9999px_rgba(0,0,0,0.45)]" />
             </div>
             <p className="absolute inset-x-0 bottom-6 text-center font-body-md text-body-md text-white/90">
-              Point the camera at a product barcode.
+              {t('scanner.pointCamera')}
             </p>
           </>
         )}
@@ -117,19 +121,19 @@ export function BarcodeScanner({
         {status === 'starting' && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-sm text-white">
             <Spinner className="h-6 w-6" />
-            <p className="font-body-md text-body-md">Starting camera…</p>
+            <p className="font-body-md text-body-md">{t('scanner.starting')}</p>
           </div>
         )}
 
         {status === 'error' && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-md p-xl text-center text-white">
             <Icon name="videocam_off" className="text-4xl text-white/70" />
-            <p className="max-w-sm font-body-md text-body-md text-white/90">{errorMsg}</p>
+            <p className="max-w-sm font-body-md text-body-md text-white/90">{errorKey && t(errorKey)}</p>
             <button
               onClick={onClose}
               className="rounded-full bg-white px-5 py-2 font-label-md text-label-md font-semibold text-on-surface transition-colors hover:bg-white/90"
             >
-              Back to search
+              {t('scanner.backToSearch')}
             </button>
           </div>
         )}

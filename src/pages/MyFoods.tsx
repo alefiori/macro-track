@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
+import { useI18n } from '@/context/I18nContext'
 import { Icon } from '@/components/ui/Icon'
 import { LoadingBlock } from '@/components/ui/Spinner'
 import { SourceTag } from '@/components/ui/SourceTag'
@@ -23,6 +24,7 @@ function toPrefill(food: Food): CustomFoodPrefill {
 }
 
 export default function MyFoods() {
+  const { t } = useI18n()
   const [foods, setFoods] = useState<Food[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -45,7 +47,7 @@ export default function MyFoods() {
   }, [fetchFoods])
 
   async function handleDelete(food: Food) {
-    if (!window.confirm(`Delete "${food.name}"? Logs that reference it will also be removed.`)) {
+    if (!window.confirm(t('myFoods.deleteConfirm', { name: food.name }))) {
       return
     }
     // Optimistic removal.
@@ -55,7 +57,7 @@ export default function MyFoods() {
       await deleteFood(food.id)
     } catch (err) {
       setFoods(prev)
-      setError(err instanceof Error ? err.message : 'Could not delete food.')
+      setError(err instanceof Error ? err.message : t('myFoods.couldNotDelete'))
     }
   }
 
@@ -66,10 +68,10 @@ export default function MyFoods() {
       <div className="flex flex-col justify-between gap-md sm:flex-row sm:items-end">
         <div>
           <h2 className="font-headline-lg-mobile text-headline-lg-mobile text-on-surface md:font-headline-lg md:text-headline-lg">
-            My Foods
+            {t('myFoods.title')}
           </h2>
           <p className="mt-1 font-body-md text-body-md text-on-surface-variant">
-            Your custom foods and items imported from Open Food Facts.
+            {t('myFoods.subtitle')}
           </p>
         </div>
         <Link
@@ -77,7 +79,7 @@ export default function MyFoods() {
           className="flex h-[48px] items-center justify-center gap-sm rounded-full bg-primary px-lg font-label-md text-label-md text-on-primary shadow-sm transition-all hover:bg-on-primary-fixed-variant hover:shadow-md active:scale-95"
         >
           <Icon name="add" />
-          Create custom food
+          {t('myFoods.createCustomFood')}
         </Link>
       </div>
 
@@ -90,7 +92,7 @@ export default function MyFoods() {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Filter your foods…"
+          placeholder={t('myFoods.filterPlaceholder')}
           className="h-[48px] w-full rounded-lg border-none bg-transparent pl-[40px] pr-4 font-body-md text-body-md text-on-surface outline-none focus:ring-2 focus:ring-primary"
         />
       </div>
@@ -102,21 +104,21 @@ export default function MyFoods() {
       )}
 
       {loading ? (
-        <LoadingBlock label="Loading your foods…" />
+        <LoadingBlock label={t('myFoods.loadingFoods')} />
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center gap-sm rounded-2xl bg-surface-container-lowest py-2xl text-center shadow-card">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-surface-variant text-on-surface-variant">
             <Icon name="restaurant_menu" />
           </div>
           <p className="font-body-md text-body-md text-on-surface-variant">
-            {foods.length === 0 ? 'No foods yet.' : 'No foods match your filter.'}
+            {foods.length === 0 ? t('myFoods.noFoodsYet') : t('myFoods.noFoodsMatch')}
           </p>
           {foods.length === 0 && (
             <Link
               to="/foods/new"
               className="mt-2 rounded-full bg-primary-container/10 px-4 py-2 font-label-md text-label-md text-primary transition-colors hover:bg-primary-container/20"
             >
-              Create your first food
+              {t('myFoods.createFirstFood')}
             </Link>
           )}
         </div>
@@ -150,12 +152,12 @@ export default function MyFoods() {
                 <div className="flex shrink-0 items-center gap-3 font-label-md text-sm text-secondary">
                   <span className="flex flex-col items-center">
                     <b>{Math.round(calories(food))}</b>
-                    <span className="text-xs font-normal text-on-surface-variant">kcal</span>
+                    <span className="text-xs font-normal text-on-surface-variant">{t('common.kcal')}</span>
                   </span>
                   {MACROS.map((m) => (
                     <span key={m.key} className="hidden flex-col items-center sm:flex" style={{ color: m.color }}>
                       <b>{round(food[m.field])}g</b>
-                      <span className="text-xs font-normal text-on-surface-variant">{m.label[0]}</span>
+                      <span className="text-xs font-normal text-on-surface-variant">{t(`macro.${m.key}Abbr`)}</span>
                     </span>
                   ))}
                   <div className="flex items-center opacity-0 transition-all group-hover:opacity-100">
@@ -163,7 +165,7 @@ export default function MyFoods() {
                       <Link
                         to={`/foods/${food.id}/edit`}
                         className="rounded-full p-1 text-on-surface-variant transition-colors hover:text-primary"
-                        aria-label={`Edit ${food.name}`}
+                        aria-label={t('myFoods.editAria', { name: food.name })}
                       >
                         <Icon name="edit" className="text-[20px]" />
                       </Link>
@@ -173,8 +175,8 @@ export default function MyFoods() {
                         to="/foods/new"
                         state={{ prefill: toPrefill(food) }}
                         className="rounded-full p-1 text-on-surface-variant transition-colors hover:text-primary"
-                        aria-label={`Edit ${food.name} and save as a custom food`}
-                        title="Edit & save as custom"
+                        aria-label={t('myFoods.editAsCustomAria', { name: food.name })}
+                        title={t('myFoods.editAsCustomTitle')}
                       >
                         <Icon name="edit" className="text-[20px]" />
                       </Link>
@@ -182,7 +184,7 @@ export default function MyFoods() {
                     <button
                       onClick={() => handleDelete(food)}
                       className="rounded-full p-1 text-on-surface-variant transition-colors hover:text-error"
-                      aria-label={`Delete ${food.name}`}
+                      aria-label={t('myFoods.deleteAria', { name: food.name })}
                     >
                       <Icon name="delete" className="text-[20px]" />
                     </button>

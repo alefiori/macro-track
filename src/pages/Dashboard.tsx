@@ -1,13 +1,15 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAppShell } from '@/context/AppShellContext'
+import { useProfile } from '@/context/ProfileContext'
+import { useI18n } from '@/context/I18nContext'
 import { useTargets } from '@/hooks/useTargets'
 import { useFoodLogs } from '@/hooks/useFoodLogs'
 import { Icon } from '@/components/ui/Icon'
 import { Spinner, LoadingBlock } from '@/components/ui/Spinner'
 import { ProgressRing } from '@/components/ui/ProgressRing'
 import { SourceTag } from '@/components/ui/SourceTag'
-import { MACROS, MEALS } from '@/lib/constants'
+import { MACROS, MEALS, type MealKey } from '@/lib/constants'
 import {
   calories,
   caloriesForServings,
@@ -17,7 +19,7 @@ import {
   round,
   type MacroGrams,
 } from '@/lib/macros'
-import { addDays, dayOfWeek, formatLong, formatShort, isToday, todayISO } from '@/lib/date'
+import { addDays, dayOfWeek, formatLong, formatMonthDay, formatShort, formatWeekday, isToday, todayISO } from '@/lib/date'
 import { copyDayFoods, deleteFoodLog, updateLogServings } from '@/lib/foods'
 import type { FoodLogWithFood } from '@/lib/database.types'
 
@@ -36,6 +38,8 @@ export default function Dashboard() {
   } = useAppShell()
   const { byDay, loading: targetsLoading } = useTargets()
   const { logs, loading: logsLoading, error } = useFoodLogs(selectedDate, foodLogVersion)
+  const { locale } = useProfile()
+  const { t } = useI18n()
 
   const [pasting, setPasting] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
@@ -50,7 +54,7 @@ export default function Dashboard() {
       await copyDayFoods(copiedDay.date, selectedDate)
       bumpFoodLogVersion()
     } catch (e) {
-      setActionError(e instanceof Error ? e.message : 'Failed to paste foods.')
+      setActionError(e instanceof Error ? e.message : t('dashboard.failedPaste'))
     } finally {
       setPasting(false)
     }
@@ -77,10 +81,10 @@ export default function Dashboard() {
       <header className="flex items-center justify-between rounded-2xl bg-surface-container-lowest p-md shadow-card">
         <div>
           <h2 className="font-headline-lg-mobile text-headline-lg-mobile text-on-surface md:font-headline-lg md:text-headline-lg">
-            {isToday(selectedDate) ? 'Today' : formatLong(selectedDate).split(',')[0]}
+            {isToday(selectedDate) ? t('dashboard.today') : formatWeekday(selectedDate, locale)}
           </h2>
           <p className="mt-1 font-label-md text-label-md font-normal text-on-surface-variant">
-            {formatLong(selectedDate)}
+            {isToday(selectedDate) ? formatLong(selectedDate, locale) : formatMonthDay(selectedDate, locale)}
           </p>
         </div>
         <div className="flex items-center gap-sm">
@@ -88,17 +92,17 @@ export default function Dashboard() {
             onClick={() => copyDay(selectedDate, logs.length)}
             disabled={logsLoading || logs.length === 0}
             className="flex items-center gap-xs rounded-full bg-surface-container-low px-3 py-2 font-label-md text-label-md text-on-surface-variant transition-colors hover:bg-surface-container-high disabled:cursor-not-allowed disabled:opacity-40"
-            aria-label="Copy this day's foods"
-            title="Copy this day's foods"
+            aria-label={t('dashboard.copyDayAria')}
+            title={t('dashboard.copyDayAria')}
           >
             <Icon name="content_copy" className="text-sm" />
-            <span className="hidden sm:inline">Copy day</span>
+            <span className="hidden sm:inline">{t('dashboard.copyDay')}</span>
           </button>
           <div className="flex items-center gap-sm rounded-full bg-surface-container-low p-1">
             <button
               onClick={() => setSelectedDate(addDays(selectedDate, -1))}
               className="flex items-center justify-center rounded-full p-2 text-on-surface-variant transition-colors hover:bg-surface-container-high"
-              aria-label="Previous day"
+              aria-label={t('dashboard.previousDay')}
             >
               <Icon name="chevron_left" />
             </button>
@@ -106,12 +110,12 @@ export default function Dashboard() {
               onClick={() => setSelectedDate(todayISO())}
               className="px-3 font-label-md text-label-md text-primary"
             >
-              Today
+              {t('dashboard.today')}
             </button>
             <button
               onClick={() => setSelectedDate(addDays(selectedDate, 1))}
               className="flex items-center justify-center rounded-full p-2 text-on-surface-variant transition-colors hover:bg-surface-container-high"
-              aria-label="Next day"
+              aria-label={t('dashboard.nextDay')}
             >
               <Icon name="chevron_right" />
             </button>
@@ -124,8 +128,10 @@ export default function Dashboard() {
           <div className="flex items-center gap-sm text-on-surface">
             <Icon name="content_paste" className="text-primary" />
             <p className="font-body-md text-body-md">
-              {copiedDay.count} {copiedDay.count === 1 ? 'item' : 'items'} copied from{' '}
-              <span className="font-label-md text-label-md">{formatShort(copiedDay.date)}</span>
+              {t(copiedDay.count === 1 ? 'dashboard.itemCopiedOne' : 'dashboard.itemCopiedOther', {
+                count: copiedDay.count,
+              })}{' '}
+              <span className="font-label-md text-label-md">{formatShort(copiedDay.date, locale)}</span>
             </p>
           </div>
           <div className="flex items-center gap-sm">
@@ -133,15 +139,15 @@ export default function Dashboard() {
               onClick={handlePaste}
               disabled={!canPasteHere || pasting}
               className="flex items-center gap-xs rounded-full bg-primary px-4 py-2 font-label-md text-label-md text-on-primary transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-              title={canPasteHere ? 'Paste into this day' : 'Navigate to another day to paste'}
+              title={canPasteHere ? t('dashboard.pasteIntoThisDay') : t('dashboard.navigateToPaste')}
             >
               {pasting ? <Spinner className="h-4 w-4" /> : <Icon name="content_paste" className="text-sm" />}
-              Paste here
+              {t('dashboard.pasteHere')}
             </button>
             <button
               onClick={clearCopiedDay}
               className="rounded-full p-2 text-on-surface-variant transition-colors hover:bg-surface-container-high"
-              aria-label="Clear copied day"
+              aria-label={t('dashboard.clearCopiedDay')}
             >
               <Icon name="close" className="text-sm" />
             </button>
@@ -156,7 +162,7 @@ export default function Dashboard() {
       )}
 
       {targetsLoading ? (
-        <LoadingBlock label="Loading your targets…" />
+        <LoadingBlock label={t('dashboard.loadingTargets')} />
       ) : (
         <>
           {!hasTarget && (
@@ -164,14 +170,14 @@ export default function Dashboard() {
               <div className="flex items-center gap-sm text-on-surface-variant">
                 <Icon name="info" className="text-primary" />
                 <p className="font-body-md text-body-md">
-                  No macro target set for this day yet.
+                  {t('dashboard.noTargetSet')}
                 </p>
               </div>
               <Link
                 to="/targets"
                 className="rounded-full bg-primary-container/10 px-4 py-2 font-label-md text-label-md text-primary transition-colors hover:bg-primary-container/20"
               >
-                Set weekly targets
+                {t('dashboard.setWeeklyTargets')}
               </Link>
             </div>
           )}
@@ -180,7 +186,7 @@ export default function Dashboard() {
           <section className="grid grid-cols-3 gap-2 rounded-2xl bg-surface-container-lowest p-md shadow-card md:gap-lg md:bg-transparent md:p-0 md:shadow-none">
             {MACROS.map((m) => {
               const c = consumed[m.field]
-              const t = targetMacros[m.field]
+              const tgt = targetMacros[m.field]
               return (
                 <div
                   key={m.key}
@@ -193,11 +199,11 @@ export default function Dashboard() {
                     <Icon name={m.icon} className="text-sm" />
                   </div>
                   <h3 className="mb-2 font-label-md text-label-md text-on-surface-variant md:mb-6 md:self-start">
-                    {m.label}
+                    {t(`macro.${m.key}`)}
                   </h3>
                   <ProgressRing
                     consumed={c}
-                    target={t}
+                    target={tgt}
                     color={m.color}
                     trackColor={m.tint}
                     className="h-[88px] w-[88px] md:h-[120px] md:w-[120px]"
@@ -207,12 +213,12 @@ export default function Dashboard() {
                       <span className="text-xs font-normal text-on-surface-variant md:text-sm">g</span>
                     </span>
                     <span className="mt-1 w-10 border-t border-outline-variant pt-1 text-center text-xs text-on-surface-variant md:w-12">
-                      {round(t, 0)}g
+                      {round(tgt, 0)}g
                     </span>
                   </ProgressRing>
                   <div className="mt-2 text-center md:mt-4">
                     <p className="font-label-md text-xs text-on-surface md:text-label-md">
-                      <span style={{ color: m.textColor }}>{round(remaining(t, c), 0)}g</span> remaining
+                      {t('dashboard.remaining', { value: round(remaining(tgt, c), 0) })}
                     </p>
                   </div>
                 </div>
@@ -229,12 +235,12 @@ export default function Dashboard() {
                 </p>
               )}
               {logsLoading ? (
-                <LoadingBlock label="Loading meals…" />
+                <LoadingBlock label={t('dashboard.loadingMeals')} />
               ) : (
                 MEALS.map((meal) => (
                   <MealCard
                     key={meal.key}
-                    label={meal.label}
+                    mealKey={meal.key}
                     icon={meal.icon}
                     logs={logs.filter((l) => l.meal === meal.key)}
                     onAdd={() => openAddFood({ meal: meal.key })}
@@ -248,7 +254,7 @@ export default function Dashboard() {
             <div className="flex flex-col gap-lg lg:col-span-1">
               <div className="relative overflow-hidden rounded-2xl bg-primary p-lg text-on-primary shadow-sm">
                 <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
-                <h3 className="relative z-10 mb-xl font-headline-md text-headline-md">Calories</h3>
+                <h3 className="relative z-10 mb-xl font-headline-md text-headline-md">{t('dashboard.calories')}</h3>
                 <div className="relative z-10 mb-lg flex flex-col items-center justify-center">
                   <div className="flex h-[160px] w-[160px] items-center justify-center rounded-full border-4 border-white/20 bg-white/10">
                     <div className="text-center">
@@ -256,21 +262,21 @@ export default function Dashboard() {
                         {Math.round(consumedKcal).toLocaleString()}
                       </span>
                       <span className="mt-1 block font-label-md text-label-md uppercase tracking-widest opacity-80">
-                        Consumed
+                        {t('dashboard.consumed')}
                       </span>
                     </div>
                   </div>
                 </div>
                 <div className="relative z-10 flex items-center justify-between rounded-xl bg-black/10 p-md backdrop-blur-sm">
                   <div className="text-center">
-                    <span className="block text-sm opacity-80">Goal</span>
+                    <span className="block text-sm opacity-80">{t('dashboard.goal')}</span>
                     <span className="font-label-md text-label-md">
                       {Math.round(goalKcal).toLocaleString()}
                     </span>
                   </div>
                   <div className="h-8 w-px bg-white/20" />
                   <div className="text-center">
-                    <span className="block text-sm opacity-80">Remaining</span>
+                    <span className="block text-sm opacity-80">{t('dashboard.remainingLabel')}</span>
                     <span className="font-label-md text-label-md">
                       {remainingKcal.toLocaleString()}
                     </span>
@@ -286,18 +292,20 @@ export default function Dashboard() {
 }
 
 function MealCard({
-  label,
+  mealKey,
   icon,
   logs,
   onAdd,
   onChanged,
 }: {
-  label: string
+  mealKey: MealKey
   icon: string
   logs: FoodLogWithFood[]
   onAdd: () => void
   onChanged: () => void
 }) {
+  const { t } = useI18n()
+  const label = t(`meal.${mealKey}`)
   const mealKcal = logs.reduce((sum, l) => sum + caloriesForServings(l.food, l.servings), 0)
   const empty = logs.length === 0
 
@@ -319,7 +327,7 @@ function MealCard({
           </h3>
         </div>
         <span className="font-label-md text-label-md text-on-surface-variant">
-          {Math.round(mealKcal)} kcal
+          {t('dashboard.mealKcal', { kcal: Math.round(mealKcal) })}
         </span>
       </div>
 
@@ -328,12 +336,12 @@ function MealCard({
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-surface-variant text-on-surface-variant">
             <Icon name="restaurant" />
           </div>
-          <p className="text-sm text-on-surface-variant">No items logged yet</p>
+          <p className="text-sm text-on-surface-variant">{t('dashboard.noItemsLogged')}</p>
           <button
             onClick={onAdd}
             className="mt-2 rounded-xl bg-primary-container/10 px-4 py-2 font-label-md text-label-md text-primary transition-colors hover:bg-primary-container/20"
           >
-            Add {label}
+            {t('dashboard.addMeal', { meal: label })}
           </button>
         </div>
       ) : (
@@ -345,7 +353,7 @@ function MealCard({
             onClick={onAdd}
             className="mt-sm flex w-full items-center justify-center gap-xs rounded-xl py-2 font-label-md text-label-md text-primary transition-colors hover:bg-primary-container/10"
           >
-            <Icon name="add_circle" className="text-sm" /> Add {label} Item
+            <Icon name="add_circle" className="text-sm" /> {t('dashboard.addMealItem', { meal: label })}
           </button>
         </div>
       )}
@@ -361,8 +369,12 @@ function dominantColor(m: MacroGrams): string {
 }
 
 function FoodLogRow({ log, onChanged }: { log: FoodLogWithFood; onChanged: () => void }) {
+  const { t } = useI18n()
   const [editing, setEditing] = useState(false)
-  const [servings, setServings] = useState(log.servings)
+  // Edit the logged quantity as an amount in the food's serving unit (e.g.
+  // grams); servings is derived from it on save.
+  const loggedAmount = round(log.servings * log.food.serving_amount, 2)
+  const [amount, setAmount] = useState(loggedAmount)
   const [busy, setBusy] = useState(false)
 
   const scaled = scaleMacros(log.food, log.servings)
@@ -371,7 +383,7 @@ function FoodLogRow({ log, onChanged }: { log: FoodLogWithFood; onChanged: () =>
   async function save() {
     setBusy(true)
     try {
-      await updateLogServings(log.id, servings)
+      await updateLogServings(log.id, amount / log.food.serving_amount)
       setEditing(false)
       onChanged()
     } finally {
@@ -399,7 +411,7 @@ function FoodLogRow({ log, onChanged }: { log: FoodLogWithFood; onChanged: () =>
         <div className="min-w-0">
           <p className="truncate font-label-md text-label-md text-on-surface">{log.food.name}</p>
           <p className="flex items-center gap-2 truncate text-sm text-on-surface-variant">
-            {log.servings} × {log.food.serving_amount} {log.food.serving_unit}
+            {loggedAmount} {log.food.serving_unit}
             {log.food.source !== 'custom' && <SourceTag source={log.food.source} />}
           </p>
         </div>
@@ -410,27 +422,30 @@ function FoodLogRow({ log, onChanged }: { log: FoodLogWithFood; onChanged: () =>
           <div className="flex items-center gap-1">
             <input
               type="number"
-              min={0.25}
-              step={0.25}
-              value={servings}
-              onChange={(e) => setServings(Math.max(0.25, parseFloat(e.target.value) || 0.25))}
+              min={0}
+              step="any"
+              value={amount}
+              onChange={(e) => setAmount(Math.max(0, parseFloat(e.target.value) || 0))}
+              onFocus={(e) => e.target.select()}
+              aria-label={t('dashboard.amountInUnit', { unit: log.food.serving_unit })}
               className="h-9 w-20 rounded-lg border border-outline-variant bg-surface px-2 text-center font-body-md text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
             />
+            <span className="font-body-md text-sm text-on-surface-variant">{log.food.serving_unit}</span>
             <button
               onClick={save}
-              disabled={busy}
+              disabled={busy || amount <= 0}
               className="rounded-full p-1 text-primary hover:bg-primary-container/10"
-              aria-label="Save"
+              aria-label={t('dashboard.saveServingsAria')}
             >
               {busy ? <Spinner className="h-4 w-4" /> : <Icon name="check" className="text-sm" />}
             </button>
             <button
               onClick={() => {
-                setServings(log.servings)
+                setAmount(loggedAmount)
                 setEditing(false)
               }}
               className="rounded-full p-1 text-on-surface-variant hover:bg-surface-container-high"
-              aria-label="Cancel"
+              aria-label={t('dashboard.cancelEditAria')}
             >
               <Icon name="close" className="text-sm" />
             </button>
@@ -446,13 +461,13 @@ function FoodLogRow({ log, onChanged }: { log: FoodLogWithFood; onChanged: () =>
               ))}
             </div>
             <span className="w-16 text-right font-label-md text-label-md text-on-surface">
-              {Math.round(kcal)} kcal
+              {t('dashboard.mealKcal', { kcal: Math.round(kcal) })}
             </span>
             <div className="flex opacity-0 transition-opacity group-hover:opacity-100">
               <button
                 onClick={() => setEditing(true)}
                 className="p-1 text-on-surface-variant hover:text-primary"
-                aria-label="Edit"
+                aria-label={t('dashboard.editAria')}
               >
                 <Icon name="edit" className="text-sm" />
               </button>
@@ -460,7 +475,7 @@ function FoodLogRow({ log, onChanged }: { log: FoodLogWithFood; onChanged: () =>
                 onClick={remove}
                 disabled={busy}
                 className="p-1 text-on-surface-variant hover:text-error"
-                aria-label="Delete"
+                aria-label={t('dashboard.deleteAria')}
               >
                 <Icon name="delete" className="text-sm" />
               </button>

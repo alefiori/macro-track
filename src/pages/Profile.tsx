@@ -1,13 +1,15 @@
 import { useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { useProfile } from '@/context/ProfileContext'
-import { OFF_LANGUAGES } from '@/lib/constants'
+import { useI18n } from '@/context/I18nContext'
+import { LOCALES, type Locale } from '@/lib/i18n'
 import { Icon } from '@/components/ui/Icon'
 import { Spinner } from '@/components/ui/Spinner'
 
 export default function Profile() {
   const { user, signOut } = useAuth()
-  const { offLanguage, setOffLanguage, loading: profileLoading } = useProfile()
+  const { locale, setLocale, loading: profileLoading } = useProfile()
+  const { t } = useI18n()
   const [busy, setBusy] = useState(false)
   const [savingLang, setSavingLang] = useState(false)
   const [langError, setLangError] = useState<string | null>(null)
@@ -21,13 +23,13 @@ export default function Profile() {
     }
   }
 
-  async function handleLanguageChange(code: string) {
+  async function handleLanguageChange(code: Locale) {
     setLangError(null)
     setSavingLang(true)
     try {
-      await setOffLanguage(code)
+      await setLocale(code)
     } catch {
-      setLangError('Could not save language. Please try again.')
+      setLangError(t('profile.couldNotSaveLanguage'))
     } finally {
       setSavingLang(false)
     }
@@ -36,7 +38,7 @@ export default function Profile() {
   return (
     <div className="mx-auto flex w-full max-w-[640px] flex-col gap-lg px-container-margin-mobile py-lg md:px-container-margin-desktop md:py-xl">
       <h2 className="font-headline-lg-mobile text-headline-lg-mobile text-on-surface md:font-headline-lg md:text-headline-lg">
-        Profile
+        {t('profile.title')}
       </h2>
 
       <div className="flex flex-col gap-lg rounded-2xl bg-surface-container-lowest p-lg shadow-card">
@@ -45,36 +47,36 @@ export default function Profile() {
             <Icon name="person" className="text-3xl" />
           </div>
           <div className="min-w-0">
-            <p className="font-label-md text-label-md text-on-surface-variant">Signed in as</p>
+            <p className="font-label-md text-label-md text-on-surface-variant">{t('profile.signedInAs')}</p>
             <p className="truncate font-headline-md text-headline-md text-on-surface">{user?.email}</p>
           </div>
         </div>
 
         <hr className="border-surface-container-highest" />
 
-        {/* Open Food Facts language */}
+        {/* App + food database language (single preference) */}
         <div className="flex flex-col gap-sm">
           <div className="flex items-center gap-2">
             <Icon name="translate" className="text-[20px] text-on-surface-variant" />
             <label
-              htmlFor="off-language"
+              htmlFor="locale"
               className="font-label-md text-label-md text-on-surface"
             >
-              Food database language
+              {t('profile.languageLabel')}
             </label>
           </div>
           <p className="font-body-md text-sm text-on-surface-variant">
-            Preferred language for Open Food Facts search and barcode results.
+            {t('profile.languageDescription')}
           </p>
           <div className="relative">
             <select
-              id="off-language"
-              value={offLanguage}
+              id="locale"
+              value={locale}
               disabled={profileLoading || savingLang}
-              onChange={(e) => handleLanguageChange(e.target.value)}
+              onChange={(e) => handleLanguageChange(e.target.value as Locale)}
               className="h-[48px] w-full appearance-none rounded-lg border border-outline-variant bg-surface px-4 pr-10 font-body-md text-body-md text-on-surface outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary disabled:opacity-60"
             >
-              {OFF_LANGUAGES.map((l) => (
+              {LOCALES.map((l) => (
                 <option key={l.code} value={l.code}>
                   {l.label}
                 </option>
@@ -102,7 +104,7 @@ export default function Profile() {
           className="flex min-h-[48px] items-center justify-center gap-sm rounded-full bg-error-container font-label-md text-label-md text-on-error-container transition-all hover:opacity-90 active:scale-95 disabled:opacity-60"
         >
           {busy ? <Spinner className="h-4 w-4" /> : <Icon name="logout" className="text-[20px]" />}
-          Sign out
+          {t('profile.signOut')}
         </button>
       </div>
     </div>

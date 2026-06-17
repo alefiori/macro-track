@@ -13,11 +13,13 @@ const BarcodeScanner = lazy(() =>
 import { useFoodSearch, type SearchResult } from '@/hooks/useFoodSearch'
 import { useAppShell } from '@/context/AppShellContext'
 import { useProfile } from '@/context/ProfileContext'
+import { useI18n } from '@/context/I18nContext'
 import { MACROS, MEALS, type MealKey } from '@/lib/constants'
 import { calories, caloriesForServings, scaleMacros, round, type MacroGrams } from '@/lib/macros'
+import { compatibleUnits, servingsFor } from '@/lib/units'
 import { logFoodEntry, upsertExternalFood, type CustomFoodPrefill } from '@/lib/foods'
 import { lookupBarcode } from '@/lib/openfoodfacts'
-import { formatLong } from '@/lib/date'
+import { formatWeekday } from '@/lib/date'
 import { SOURCE_ICONS } from '@/lib/foodSources'
 import type { FoodSource } from '@/lib/database.types'
 
@@ -25,6 +27,8 @@ interface NormalizedFood extends MacroGrams {
   name: string
   subtitle: string
   source: FoodSource
+  serving_amount: number
+  serving_unit: string
 }
 
 function normalize(result: SearchResult): NormalizedFood {
@@ -33,6 +37,8 @@ function normalize(result: SearchResult): NormalizedFood {
     name: f.name,
     subtitle: `${f.brand ? f.brand + ' • ' : ''}${f.serving_amount} ${f.serving_unit}`,
     source: f.source,
+    serving_amount: f.serving_amount,
+    serving_unit: f.serving_unit,
     carbs_g: f.carbs_g,
     protein_g: f.protein_g,
     fats_g: f.fats_g,
@@ -50,12 +56,16 @@ export function AddFoodModal({
 }) {
   const navigate = useNavigate()
   const { selectedDate, bumpFoodLogVersion } = useAppShell()
-  const { offLanguage } = useProfile()
+  const { offLanguage, locale } = useProfile()
+  const { t } = useI18n()
 
   const [query, setQuery] = useState('')
   const [selected, setSelected] = useState<SearchResult | null>(null)
   const [meal, setMeal] = useState<MealKey>(initialMeal ?? 'breakfast')
-  const [servings, setServings] = useState(1)
+  // Quantity is entered as an amount in a unit of measure (e.g. 80 g, 10 lb).
+  // It is converted to a `servings` multiplier at log time.
+  const [amount, setAmount] = useState(1)
+  const [amountUnit, setAmountUnit] = useState('g')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [scanning, setScanning] = useState(false)
@@ -70,7 +80,8 @@ export function AddFoodModal({
       setQuery('')
       setSelected(null)
       setMeal(initialMeal ?? 'breakfast')
-      setServings(1)
+      setAmount(1)
+      setAmountUnit('g')
       setError(null)
       setScanning(false)
       setLookingUp(false)
@@ -79,8 +90,24 @@ export function AddFoodModal({
   }, [open, initialMeal])
 
   const detail = useMemo(() => (selected ? normalize(selected) : null), [selected])
+  const unitOptions = useMemo(
+    () => (detail ? compatibleUnits(detail.serving_unit) : []),
+    [detail],
+  )
+  const servings = detail
+    ? servingsFor(amount, amountUnit, detail.serving_amount, detail.serving_unit)
+    : 0
   const scaled = detail ? scaleMacros(detail, servings) : null
   const totalKcal = detail ? caloriesForServings(detail, servings) : 0
+
+  // Select a food and seed the amount with its own serving size (e.g. 100 g),
+  // so the default quantity equals one serving.
+  const selectFood = useCallback((result: SearchResult) => {
+    setSelected(result)
+    setAmount(result.food.serving_amount)
+    setAmountUnit(result.food.serving_unit)
+    setLookupMsg(null)
+  }, [])
 
   async function handleAdd() {
     if (!selected || !detail) return
@@ -98,7 +125,7 @@ export function AddFoodModal({
       bumpFoodLogVersion()
       onClose()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not add food.')
+      setError(err instanceof Error ? err.message : t('addFood.couldNotAdd'))
     } finally {
       setSaving(false)
     }
@@ -113,21 +140,20 @@ export function AddFoodModal({
     try {
       const food = await lookupBarcode(code, undefined, offLanguage)
       if (food) {
-        setSelected({
+        selectFood({
           kind: 'external',
           id: `ext:${food.source}:${food.externalId}`,
           food,
         })
-        setServings(1)
       } else {
-        setLookupMsg(`No product found for barcode ${code}. You can create a custom food manually.`)
+        setLookupMsg(t('addFood.noProductFound', { code }))
       }
     } catch (err) {
-      setLookupMsg(err instanceof Error ? err.message : 'Barcode lookup failed. Please try again.')
+      setLookupMsg(err instanceof Error ? err.message : t('addFood.lookupFailed'))
     } finally {
       setLookingUp(false)
     }
-  }, [offLanguage])
+  }, [offLanguage, selectFood, t])
 
   function goCreateCustom(prefill?: CustomFoodPrefill) {
     onClose()
@@ -173,12 +199,12 @@ export function AddFoodModal({
         >
           <header className="flex items-center justify-between gap-md border-b border-surface-variant p-md">
             <h2 id="add-food-title" className="font-headline-md text-headline-md text-on-surface">
-              Add Food
+              {t('addFood.title')}
             </h2>
             <button
               onClick={onClose}
               className="rounded-full bg-surface-container-high p-2 text-on-surface transition-colors hover:bg-surface-variant"
-              aria-label="Close"
+              aria-label={t('addFood.close')}
             >
               <Icon name="close" />
             </button>
@@ -195,8 +221,8 @@ export function AddFoodModal({
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                aria-label="Search foods"
-                placeholder="Search your foods and food databases…"
+                aria-label={t('addFood.searchAria')}
+                placeholder={t('addFood.searchPlaceholder')}
                 className="h-[48px] w-full rounded-lg border border-outline-variant bg-surface pl-[40px] pr-4 font-body-md text-body-md text-on-surface outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
               />
               {loading && <Spinner className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary" />}
@@ -210,7 +236,7 @@ export function AddFoodModal({
               className="mt-sm flex w-full items-center justify-center gap-2 rounded-lg border border-outline-variant bg-surface-container-low py-3 font-label-md text-label-md text-on-surface transition-colors hover:bg-surface-container-high"
             >
               <Icon name="barcode_scanner" />
-              Scan barcode
+              {t('addFood.scanBarcode')}
             </button>
           </div>
 
@@ -224,7 +250,7 @@ export function AddFoodModal({
             {lookingUp && (
               <div className="flex items-center justify-center gap-sm py-lg text-on-surface-variant">
                 <Spinner className="h-4 w-4 text-primary" />
-                <span className="font-body-md text-body-md">Looking up barcode…</span>
+                <span className="font-body-md text-body-md">{t('addFood.lookingUp')}</span>
               </div>
             )}
 
@@ -238,7 +264,7 @@ export function AddFoodModal({
                   onClick={() => goCreateCustom()}
                   className="rounded-full bg-primary-container/10 px-4 py-2 font-label-md text-label-md text-primary transition-colors hover:bg-primary-container/20"
                 >
-                  Create custom food
+                  {t('addFood.createCustomFood')}
                 </button>
               </div>
             )}
@@ -247,7 +273,7 @@ export function AddFoodModal({
               <div className="flex flex-col items-center gap-sm py-2xl text-center text-on-surface-variant">
                 <Icon name="nutrition" className="text-3xl text-outline-variant" />
                 <p className="font-body-md text-body-md">
-                  Search your foods and public food databases.
+                  {t('addFood.searchPrompt')}
                 </p>
               </div>
             )}
@@ -255,17 +281,19 @@ export function AddFoodModal({
             {query.trim() && !loading && results.length === 0 && !searchError && (
               <div className="flex flex-col items-center gap-sm py-2xl text-center text-on-surface-variant">
                 <Icon name="search_off" className="text-3xl text-outline-variant" />
-                <p className="font-body-md text-body-md">No foods found for “{query.trim()}”.</p>
+                <p className="font-body-md text-body-md">{t('addFood.noFoodsFound', { query: query.trim() })}</p>
               </div>
             )}
 
             {results.length > 0 && (
               <div className="sticky top-0 z-10 mb-xs flex items-center justify-between bg-surface-container-lowest py-sm">
                 <h3 className="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant">
-                  Results
+                  {t('addFood.results')}
                 </h3>
                 <span className="font-body-md text-sm text-outline">
-                  {results.length} result{results.length === 1 ? '' : 's'}
+                  {t(results.length === 1 ? 'addFood.resultCountOne' : 'addFood.resultCountOther', {
+                    count: results.length,
+                  })}
                 </span>
               </div>
             )}
@@ -278,11 +306,7 @@ export function AddFoodModal({
                 return (
                   <button
                     key={r.id}
-                    onClick={() => {
-                      setSelected(r)
-                      setServings(1)
-                      setLookupMsg(null)
-                    }}
+                    onClick={() => selectFood(r)}
                     className={`flex items-center justify-between gap-sm rounded-xl border p-md text-left transition-colors ${
                       isSelected
                         ? 'border-primary/20 bg-primary-container/10'
@@ -317,7 +341,7 @@ export function AddFoodModal({
                       {MACROS.map((m) => (
                         <span key={m.key} className="flex flex-col items-center" style={{ color: m.color }}>
                           <b>{round(n[m.field])}g</b>
-                          <span className="text-xs font-normal text-on-surface-variant">{m.label[0]}</span>
+                          <span className="text-xs font-normal text-on-surface-variant">{t(`macro.${m.key}Abbr`)}</span>
                         </span>
                       ))}
                     </div>
@@ -333,7 +357,7 @@ export function AddFoodModal({
               className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#F0FDFA] py-3 font-label-md text-label-md text-primary transition-colors hover:bg-surface-container-high"
             >
               <Icon name="add_circle" />
-              Create custom food
+              {t('addFood.createCustomFood')}
             </button>
           </div>
         </section>
@@ -347,7 +371,7 @@ export function AddFoodModal({
           {!detail ? (
             <div className="flex flex-1 flex-col items-center justify-center gap-sm p-xl text-center text-on-surface-variant">
               <Icon name="touch_app" className="text-3xl text-outline-variant" />
-              <p className="font-body-md text-body-md">Select a food to log it.</p>
+              <p className="font-body-md text-body-md">{t('addFood.selectToLog')}</p>
             </div>
           ) : (
             <>
@@ -357,7 +381,7 @@ export function AddFoodModal({
                   className="mb-md flex items-center gap-1 font-label-md text-label-md text-on-surface-variant transition-colors hover:text-on-surface lg:hidden"
                 >
                   <Icon name="arrow_back" className="text-[20px]" />
-                  Back to search
+                  {t('addFood.backToSearch')}
                 </button>
                 <div className="mb-md flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-container text-on-primary-container">
                   <Icon name="nutrition" className="text-3xl" />
@@ -382,21 +406,21 @@ export function AddFoodModal({
                         {round(scaled![m.field])}g
                       </span>
                       <span className="font-label-md text-label-md" style={{ color: m.color }}>
-                        {m.label}
+                        {t(`macro.${m.key}`)}
                       </span>
                     </div>
                   ))}
                 </div>
                 <div className="text-center font-label-md text-label-md text-secondary">
-                  Total Energy:{' '}
-                  <span className="ml-1 text-lg font-bold text-on-surface">{Math.round(totalKcal)} kcal</span>
+                  {t('addFood.totalEnergy')}{' '}
+                  <span className="ml-1 text-lg font-bold text-on-surface">{Math.round(totalKcal)} {t('common.kcal')}</span>
                 </div>
 
                 <hr className="border-surface-variant" />
 
                 {/* Meal picker */}
                 <div>
-                  <label className="mb-2 block font-label-md text-label-md text-on-surface-variant">Meal</label>
+                  <label className="mb-2 block font-label-md text-label-md text-on-surface-variant">{t('addFood.meal')}</label>
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                     {MEALS.map((m) => (
                       <button
@@ -408,45 +432,52 @@ export function AddFoodModal({
                             : 'border-outline-variant bg-surface-container-low text-on-surface hover:bg-surface-container-high'
                         }`}
                       >
-                        {m.label}
+                        {t(`meal.${m.key}`)}
                       </button>
                     ))}
                   </div>
                 </div>
 
-                {/* Servings */}
+                {/* Amount — entered as a quantity in a unit of measure */}
                 <div>
                   <label
-                    htmlFor="servings-input"
+                    htmlFor="amount-input"
                     className="mb-2 block font-label-md text-label-md text-on-surface-variant"
                   >
-                    Servings
+                    {t('addFood.amount')}
                   </label>
                   <div className="flex items-center gap-sm">
-                    <button
-                      onClick={() => setServings((s) => Math.max(0.25, round(s - 0.5)))}
-                      className="flex h-[48px] w-[48px] items-center justify-center rounded-lg border border-outline-variant bg-surface-container-low text-on-surface transition-colors hover:bg-surface-container-high"
-                      aria-label="Decrease servings"
-                    >
-                      <Icon name="remove" />
-                    </button>
                     <input
-                      id="servings-input"
+                      id="amount-input"
                       type="number"
-                      min={0.25}
-                      step={0.25}
-                      value={servings}
-                      onChange={(e) => setServings(Math.max(0, parseFloat(e.target.value) || 0))}
+                      min={0}
+                      step="any"
+                      value={amount}
+                      onChange={(e) => setAmount(Math.max(0, parseFloat(e.target.value) || 0))}
+                      onFocus={(e) => e.target.select()}
                       className="h-[48px] flex-1 rounded-lg border border-outline-variant bg-surface-container-low px-4 text-center font-body-md text-body-md text-on-surface outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                     />
-                    <button
-                      onClick={() => setServings((s) => round(s + 0.5))}
-                      className="flex h-[48px] w-[48px] items-center justify-center rounded-lg border border-outline-variant bg-surface-container-low text-on-surface transition-colors hover:bg-surface-container-high"
-                      aria-label="Increase servings"
+                    <select
+                      aria-label={t('addFood.unit')}
+                      value={amountUnit}
+                      onChange={(e) => setAmountUnit(e.target.value)}
+                      disabled={unitOptions.length <= 1}
+                      className="h-[48px] rounded-lg border border-outline-variant bg-surface-container-low px-3 font-body-md text-body-md text-on-surface outline-none focus:border-primary focus:ring-1 focus:ring-primary disabled:opacity-70"
                     >
-                      <Icon name="add" />
-                    </button>
+                      {unitOptions.map((u) => (
+                        <option key={u} value={u}>
+                          {u}
+                        </option>
+                      ))}
+                    </select>
                   </div>
+                  <p className="mt-1 font-body-md text-xs text-on-surface-variant">
+                    {t('addFood.servingHint', {
+                      servings: round(servings, 2),
+                      amount: detail.serving_amount,
+                      unit: detail.serving_unit,
+                    })}
+                  </p>
                 </div>
 
                 {error && (
@@ -466,7 +497,7 @@ export function AddFoodModal({
                   ) : (
                     <>
                       <Icon name="check" />
-                      Add to {formatLong(selectedDate).split(',')[0]}
+                      {t('addFood.addToDay', { day: formatWeekday(selectedDate, locale) })}
                     </>
                   )}
                 </button>
@@ -478,7 +509,7 @@ export function AddFoodModal({
                     className="flex w-full items-center justify-center gap-2 rounded-xl border border-outline-variant py-3 font-label-md text-label-md text-on-surface transition-colors hover:bg-surface-container-high disabled:opacity-60"
                   >
                     <Icon name="edit" />
-                    Edit &amp; save as custom
+                    {t('addFood.editAsCustom')}
                   </button>
                 )}
               </div>

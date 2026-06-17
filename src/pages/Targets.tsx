@@ -1,11 +1,24 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
+import { useI18n } from '@/context/I18nContext'
 import { useTargets } from '@/hooks/useTargets'
 import { supabase } from '@/lib/supabase'
 import { Icon } from '@/components/ui/Icon'
 import { Spinner, LoadingBlock } from '@/components/ui/Spinner'
 import { MACROS, TARGET_DAYS } from '@/lib/constants'
 import { calories } from '@/lib/macros'
+import type { TranslationKey } from '@/lib/i18n'
+
+/** Map a JS day-of-week index (0 = Sunday) to its weekday translation key. */
+const DOW_KEY: Record<number, TranslationKey> = {
+  0: 'weekday.short.sun',
+  1: 'weekday.short.mon',
+  2: 'weekday.short.tue',
+  3: 'weekday.short.wed',
+  4: 'weekday.short.thu',
+  5: 'weekday.short.fri',
+  6: 'weekday.short.sat',
+}
 
 interface DayValues {
   carbs_g: number
@@ -19,6 +32,7 @@ const EMPTY: DayValues = { carbs_g: 0, protein_g: 0, fats_g: 0 }
 
 export default function Targets() {
   const { user } = useAuth()
+  const { t } = useI18n()
   const { byDay, loading, error, refetch } = useTargets()
   const [values, setValues] = useState<Values>({})
   const [saving, setSaving] = useState(false)
@@ -70,7 +84,7 @@ export default function Targets() {
       await refetch()
       setSaved(true)
     } catch (err) {
-      setSaveError(err instanceof Error ? err.message : 'Could not save targets.')
+      setSaveError(err instanceof Error ? err.message : t('targets.couldNotSave'))
     } finally {
       setSaving(false)
     }
@@ -82,10 +96,10 @@ export default function Targets() {
       <div className="sticky top-[72px] z-20 flex flex-col justify-between gap-md border-b border-outline-variant/10 bg-surface-bright/80 px-container-margin-mobile py-lg backdrop-blur-sm md:flex-row md:items-end lg:top-0 lg:px-container-margin-desktop lg:py-xl">
         <div>
           <h2 className="font-headline-lg-mobile text-headline-lg-mobile text-on-surface lg:font-headline-lg lg:text-headline-lg">
-            Weekly Planner
+            {t('targets.title')}
           </h2>
           <p className="mt-1 font-body-md text-body-md text-on-surface-variant">
-            Set your daily macronutrient goals for the week.
+            {t('targets.subtitle')}
           </p>
         </div>
         <div className="flex items-center gap-sm">
@@ -94,8 +108,8 @@ export default function Targets() {
             className="flex h-[48px] items-center justify-center gap-sm rounded-full bg-secondary-container px-lg font-label-md text-label-md text-on-secondary-container transition-all hover:bg-surface-container-high active:scale-95"
           >
             <Icon name="content_copy" className="text-[20px]" />
-            <span className="hidden sm:inline">Copy Mon to All</span>
-            <span className="sm:hidden">Copy Mon</span>
+            <span className="hidden sm:inline">{t('targets.copyMonToAll')}</span>
+            <span className="sm:hidden">{t('targets.copyMon')}</span>
           </button>
           <button
             onClick={save}
@@ -103,7 +117,7 @@ export default function Targets() {
             className="flex h-[48px] items-center justify-center gap-sm rounded-full bg-primary px-lg font-label-md text-label-md text-on-primary shadow-sm transition-all hover:bg-on-primary-fixed-variant hover:shadow-md active:scale-95 disabled:opacity-60"
           >
             {saving ? <Spinner className="h-4 w-4" /> : <Icon name="save" className="text-[20px]" />}
-            Save Targets
+            {t('targets.saveTargets')}
           </button>
         </div>
       </div>
@@ -116,17 +130,18 @@ export default function Targets() {
         )}
         {saved && (
           <p className="mb-md rounded-lg bg-primary-container/10 px-md py-sm font-label-md text-label-md text-primary">
-            Targets saved.
+            {t('targets.saved')}
           </p>
         )}
 
         {loading ? (
-          <LoadingBlock label="Loading targets…" />
+          <LoadingBlock label={t('targets.loading')} />
         ) : (
           <div className="grid grid-cols-1 items-start gap-md lg:grid-cols-7 lg:gap-sm">
-            {TARGET_DAYS.map(({ dow, short }) => {
+            {TARGET_DAYS.map(({ dow }) => {
               const v = values[dow] ?? EMPTY
               const kcal = calories(v)
+              const dayLabel = t(DOW_KEY[dow])
               return (
                 <div
                   key={dow}
@@ -138,12 +153,12 @@ export default function Targets() {
                         dow === 0 || dow === 6 ? 'text-on-surface-variant' : 'text-on-surface'
                       }`}
                     >
-                      {short}
+                      {dayLabel}
                     </h3>
                     <button
                       onClick={() => copyToAll(dow)}
-                      aria-label={`Copy ${short} to all days`}
-                      title={`Copy ${short} to all days`}
+                      aria-label={t('targets.copyDayToAll', { day: dayLabel })}
+                      title={t('targets.copyDayToAll', { day: dayLabel })}
                       className="rounded-full p-1 text-outline-variant transition-colors hover:bg-surface-container-high hover:text-primary"
                     >
                       <Icon name="content_copy" className="text-[18px]" />
@@ -161,7 +176,7 @@ export default function Targets() {
                             className="h-2 w-2 rounded-full"
                             style={{ backgroundColor: m.color }}
                           />
-                          {m.label} (g)
+                          {t('targets.macroLabel', { macro: t(`macro.${m.key}`) })}
                         </label>
                         <input
                           id={`target-${dow}-${m.key}`}
@@ -178,7 +193,7 @@ export default function Targets() {
 
                   <div className="mt-auto flex flex-col items-center justify-center rounded-lg bg-surface-container-low p-sm pt-sm">
                     <span className="text-[12px] font-semibold uppercase tracking-wider text-on-surface-variant">
-                      Total Calories
+                      {t('targets.totalCalories')}
                     </span>
                     <div className="font-data-display text-[28px] font-bold leading-[36px] text-on-surface">
                       {Math.round(kcal)}

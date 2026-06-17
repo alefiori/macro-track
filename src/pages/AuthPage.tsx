@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
+import { useI18n } from '@/context/I18nContext'
 import { Icon } from '@/components/ui/Icon'
 import { Spinner } from '@/components/ui/Spinner'
 
@@ -11,6 +12,7 @@ const inputClass =
 
 export default function AuthPage({ initialTab = 'signin' }: { initialTab?: Tab }) {
   const { session, signIn, signUp } = useAuth()
+  const { t } = useI18n()
   const navigate = useNavigate()
 
   const [tab, setTab] = useState<Tab>(initialTab)
@@ -30,7 +32,7 @@ export default function AuthPage({ initialTab = 'signin' }: { initialTab?: Tab }
     setNotice(null)
 
     if (tab === 'signup' && password !== confirm) {
-      setError('Passwords do not match.')
+      setError(t('auth.passwordsNoMatch'))
       return
     }
 
@@ -42,14 +44,14 @@ export default function AuthPage({ initialTab = 'signin' }: { initialTab?: Tab }
       } else {
         const { needsConfirmation } = await signUp(email, password)
         if (needsConfirmation) {
-          setNotice('Check your inbox to confirm your email, then sign in.')
+          setNotice(t('auth.checkInbox'))
           setTab('signin')
         } else {
           navigate('/', { replace: true })
         }
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong.')
+      setError(err instanceof Error ? err.message : t('auth.somethingWrong'))
     } finally {
       setBusy(false)
     }
@@ -77,7 +79,7 @@ export default function AuthPage({ initialTab = 'signin' }: { initialTab?: Tab }
               MacroTrack
             </h1>
             <p className="font-body-lg text-body-lg text-on-surface-variant">
-              Track your macros, every day.
+              {t('auth.tagline')}
             </p>
           </div>
 
@@ -92,7 +94,7 @@ export default function AuthPage({ initialTab = 'signin' }: { initialTab?: Tab }
                   : 'border-b-2 border-transparent text-on-surface-variant hover:text-on-surface'
               }`}
             >
-              Sign In
+              {t('auth.signIn')}
             </button>
             <button
               type="button"
@@ -103,7 +105,7 @@ export default function AuthPage({ initialTab = 'signin' }: { initialTab?: Tab }
                   : 'border-b-2 border-transparent text-on-surface-variant hover:text-on-surface'
               }`}
             >
-              Sign Up
+              {t('auth.signUp')}
             </button>
           </div>
 
@@ -121,7 +123,7 @@ export default function AuthPage({ initialTab = 'signin' }: { initialTab?: Tab }
           <form className="flex flex-col gap-md" onSubmit={handleSubmit}>
             <div className="flex flex-col gap-xs">
               <label className="font-label-md text-label-md text-on-surface" htmlFor="email">
-                Email Address
+                {t('auth.emailAddress')}
               </label>
               <input
                 id="email"
@@ -137,7 +139,7 @@ export default function AuthPage({ initialTab = 'signin' }: { initialTab?: Tab }
 
             <div className="flex flex-col gap-xs">
               <label className="font-label-md text-label-md text-on-surface" htmlFor="password">
-                Password
+                {t('auth.password')}
               </label>
               <div className="relative w-full">
                 <input
@@ -145,7 +147,7 @@ export default function AuthPage({ initialTab = 'signin' }: { initialTab?: Tab }
                   type={showPassword ? 'text' : 'password'}
                   required
                   autoComplete={tab === 'signin' ? 'current-password' : 'new-password'}
-                  placeholder={tab === 'signin' ? '••••••••' : 'Create a password'}
+                  placeholder={tab === 'signin' ? '••••••••' : t('auth.createPasswordPlaceholder')}
                   className={`${inputClass} pr-[48px]`}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -154,7 +156,7 @@ export default function AuthPage({ initialTab = 'signin' }: { initialTab?: Tab }
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
                   className="absolute right-0 top-0 flex h-[48px] w-[48px] items-center justify-center text-on-surface-variant transition-colors hover:text-on-surface"
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
                 >
                   <Icon name={showPassword ? 'visibility' : 'visibility_off'} />
                 </button>
@@ -164,14 +166,14 @@ export default function AuthPage({ initialTab = 'signin' }: { initialTab?: Tab }
             {tab === 'signup' && (
               <div className="flex flex-col gap-xs">
                 <label className="font-label-md text-label-md text-on-surface" htmlFor="confirm">
-                  Confirm Password
+                  {t('auth.confirmPassword')}
                 </label>
                 <input
                   id="confirm"
                   type={showPassword ? 'text' : 'password'}
                   required
                   autoComplete="new-password"
-                  placeholder="Repeat your password"
+                  placeholder={t('auth.repeatPasswordPlaceholder')}
                   className={inputClass}
                   value={confirm}
                   onChange={(e) => setConfirm(e.target.value)}
@@ -186,7 +188,7 @@ export default function AuthPage({ initialTab = 'signin' }: { initialTab?: Tab }
                   onClick={() => navigate('/forgot-password')}
                   className="font-label-md text-label-md text-primary transition-colors hover:text-on-primary-fixed-variant"
                 >
-                  Forgot password?
+                  {t('auth.forgotPassword')}
                 </button>
               </div>
             )}
@@ -200,19 +202,19 @@ export default function AuthPage({ initialTab = 'signin' }: { initialTab?: Tab }
                 <Spinner className="h-4 w-4" />
               ) : tab === 'signin' ? (
                 <>
-                  <span>Sign in</span>
+                  <span>{t('auth.signInAction')}</span>
                   <Icon name="arrow_forward" className="text-[18px]" />
                 </>
               ) : (
-                <span>Create account</span>
+                <span>{t('auth.createAccount')}</span>
               )}
             </button>
 
             {tab === 'signup' && (
               <p className="mt-sm text-center font-body-md text-body-md text-on-surface-variant">
-                By signing up, you agree to our{' '}
-                <span className="text-primary">Terms</span> and{' '}
-                <span className="text-primary">Privacy Policy</span>.
+                {t('auth.termsPrefix')}{' '}
+                <span className="text-primary">{t('auth.terms')}</span> {t('auth.and')}{' '}
+                <span className="text-primary">{t('auth.privacyPolicy')}</span>.
               </p>
             )}
           </form>

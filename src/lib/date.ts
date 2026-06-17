@@ -32,18 +32,31 @@ export function isToday(iso: string): boolean {
   return iso === todayISO()
 }
 
-/** e.g. "Thursday, October 26" */
-export function formatLong(iso: string): string {
-  return fromISODate(iso).toLocaleDateString(undefined, {
+/** e.g. "Thursday, October 26" — localized when a locale is given. */
+export function formatLong(iso: string, locale?: string): string {
+  return fromISODate(iso).toLocaleDateString(locale, {
     weekday: 'long',
     month: 'long',
     day: 'numeric',
   })
 }
 
+/** Just the weekday, e.g. "Thursday" — localized when a locale is given. */
+export function formatWeekday(iso: string, locale?: string): string {
+  return fromISODate(iso).toLocaleDateString(locale, { weekday: 'long' })
+}
+
+/** e.g. "October 26" (no weekday) */
+export function formatMonthDay(iso: string, locale?: string): string {
+  return fromISODate(iso).toLocaleDateString(locale, {
+    month: 'long',
+    day: 'numeric',
+  })
+}
+
 /** e.g. "Oct 26, 2023" */
-export function formatShort(iso: string): string {
-  return fromISODate(iso).toLocaleDateString(undefined, {
+export function formatShort(iso: string, locale?: string): string {
+  return fromISODate(iso).toLocaleDateString(locale, {
     month: 'short',
     day: 'numeric',
     year: 'numeric',

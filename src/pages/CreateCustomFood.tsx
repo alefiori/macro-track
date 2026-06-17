@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Icon } from '@/components/ui/Icon'
 import { Spinner, LoadingBlock } from '@/components/ui/Spinner'
 import { useAppShell } from '@/context/AppShellContext'
+import { useI18n } from '@/context/I18nContext'
 import { MACROS, SERVING_UNITS, MEALS, type MealKey } from '@/lib/constants'
 import { calories } from '@/lib/macros'
 import {
@@ -22,6 +23,7 @@ export default function CreateCustomFood() {
   const { id } = useParams<{ id?: string }>()
   const isEdit = Boolean(id)
   const { selectedDate, bumpFoodLogVersion } = useAppShell()
+  const { t } = useI18n()
 
   // When arriving from "Edit & save as custom" on an API food, the source
   // values ride along in router state. Create-mode only — saving always makes a
@@ -54,9 +56,9 @@ export default function CreateCustomFood() {
       .then((food) => {
         if (cancelled) return
         if (!food) {
-          setLoadError('Food not found.')
+          setLoadError(t('createFood.notFound'))
         } else if (!food.is_custom) {
-          setLoadError('Only custom foods can be edited.')
+          setLoadError(t('createFood.onlyCustomEditable'))
         } else {
           setName(food.name)
           setBrand(food.brand ?? '')
@@ -67,7 +69,7 @@ export default function CreateCustomFood() {
           setFats(String(food.fats_g))
         }
       })
-      .catch((err) => !cancelled && setLoadError(err instanceof Error ? err.message : 'Could not load food.'))
+      .catch((err) => !cancelled && setLoadError(err instanceof Error ? err.message : t('createFood.couldNotLoad')))
       .finally(() => !cancelled && setLoading(false))
     return () => {
       cancelled = true
@@ -87,8 +89,8 @@ export default function CreateCustomFood() {
   const valueOf = { carbs_g: carbs, protein_g: protein, fats_g: fats }
 
   function validate(): string | null {
-    if (!name.trim()) return 'Please enter a food name.'
-    if (!(parseFloat(servingAmount) > 0)) return 'Serving amount must be greater than 0.'
+    if (!name.trim()) return t('createFood.enterFoodName')
+    if (!(parseFloat(servingAmount) > 0)) return t('createFood.servingGreaterZero')
     return null
   }
 
@@ -119,7 +121,7 @@ export default function CreateCustomFood() {
         navigate('/foods')
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not save food.')
+      setError(err instanceof Error ? err.message : t('createFood.couldNotSave'))
     } finally {
       setBusy(false)
     }
@@ -130,18 +132,18 @@ export default function CreateCustomFood() {
       <div className="mb-lg flex items-center gap-sm">
         <button
           onClick={() => navigate(-1)}
-          aria-label="Go back"
+          aria-label={t('createFood.goBack')}
           className="rounded-full p-2 transition-colors hover:bg-surface-container-low"
         >
           <Icon name="arrow_back" className="text-on-surface-variant" />
         </button>
         <h1 className="font-headline-lg-mobile text-headline-lg-mobile font-bold text-on-surface md:font-headline-lg md:text-headline-lg">
-          {isEdit ? 'Edit Custom Food' : 'Create Custom Food'}
+          {isEdit ? t('createFood.editTitle') : t('createFood.createTitle')}
         </h1>
       </div>
 
       {loading ? (
-        <LoadingBlock label="Loading food…" />
+        <LoadingBlock label={t('createFood.loadingFood')} />
       ) : loadError ? (
         <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-md rounded-2xl bg-surface-container-lowest p-lg text-center shadow-card">
           <p className="rounded-lg bg-error-container px-md py-sm font-label-md text-label-md text-on-error-container">
@@ -151,7 +153,7 @@ export default function CreateCustomFood() {
             onClick={() => navigate('/foods')}
             className="rounded-full bg-primary-container/10 px-4 py-2 font-label-md text-label-md text-primary transition-colors hover:bg-primary-container/20"
           >
-            Back to My Foods
+            {t('createFood.backToMyFoods')}
           </button>
         </div>
       ) : (
@@ -165,37 +167,37 @@ export default function CreateCustomFood() {
 
           {/* Food details */}
           <div className="flex flex-col gap-md">
-            <h2 className="font-headline-md text-headline-md font-bold text-primary">Food Details</h2>
+            <h2 className="font-headline-md text-headline-md font-bold text-primary">{t('createFood.foodDetails')}</h2>
             <div className="flex flex-col gap-2">
               <label className="font-label-md text-label-md text-on-surface-variant" htmlFor="foodName">
-                Food Name
+                {t('createFood.foodName')}
               </label>
               <input
                 id="foodName"
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g., Homemade Almond Butter"
+                placeholder={t('createFood.foodNamePlaceholder')}
                 className={fieldClass}
               />
             </div>
             <div className="flex flex-col gap-2">
               <label className="font-label-md text-label-md text-on-surface-variant" htmlFor="foodBrand">
-                Brand <span className="text-outline">(optional)</span>
+                {t('createFood.brand')} <span className="text-outline">({t('common.optional')})</span>
               </label>
               <input
                 id="foodBrand"
                 type="text"
                 value={brand}
                 onChange={(e) => setBrand(e.target.value)}
-                placeholder="e.g., Acme Foods"
+                placeholder={t('createFood.brandPlaceholder')}
                 className={fieldClass}
               />
             </div>
             <div className="flex flex-col gap-md md:flex-row">
               <div className="flex flex-1 flex-col gap-2">
                 <label className="font-label-md text-label-md text-on-surface-variant" htmlFor="servingAmount">
-                  Serving Amount
+                  {t('createFood.servingAmount')}
                 </label>
                 <input
                   id="servingAmount"
@@ -210,7 +212,7 @@ export default function CreateCustomFood() {
               </div>
               <div className="flex flex-1 flex-col gap-2">
                 <label className="font-label-md text-label-md text-on-surface-variant" htmlFor="servingUnit">
-                  Serving Unit
+                  {t('createFood.servingUnit')}
                 </label>
                 <select
                   id="servingUnit"
@@ -234,15 +236,15 @@ export default function CreateCustomFood() {
           <div className="flex flex-col gap-md">
             <div className="flex items-end justify-between">
               <h2 className="font-headline-md text-headline-md font-bold text-primary">
-                Macros (per serving)
+                {t('createFood.macrosPerServing')}
               </h2>
               <div className="flex flex-col items-end">
-                <span className="font-label-md text-label-md text-on-surface-variant">Est. Calories</span>
+                <span className="font-label-md text-label-md text-on-surface-variant">{t('createFood.estCalories')}</span>
                 <div className="flex items-baseline gap-1">
                   <span className="font-data-display text-data-display font-extrabold text-on-surface">
                     {Math.round(kcal)}
                   </span>
-                  <span className="font-body-md text-body-md text-on-surface-variant">kcal</span>
+                  <span className="font-body-md text-body-md text-on-surface-variant">{t('common.kcal')}</span>
                 </div>
               </div>
             </div>
@@ -256,7 +258,7 @@ export default function CreateCustomFood() {
                     htmlFor={`${m.key}Input`}
                   >
                     <span className="h-3 w-3 rounded-full" style={{ backgroundColor: m.color }} />
-                    {m.label} (g)
+                    {t('createFood.macroLabel', { macro: t(`macro.${m.key}`) })}
                   </label>
                   <input
                     id={`${m.key}Input`}
@@ -277,7 +279,7 @@ export default function CreateCustomFood() {
           {/* Meal (used when adding to today) */}
           <div className="flex flex-col gap-2">
             <label className="font-label-md text-label-md text-on-surface-variant">
-              Meal (if adding to today)
+              {t('createFood.mealIfAddingToday')}
             </label>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {MEALS.map((mm) => (
@@ -291,7 +293,7 @@ export default function CreateCustomFood() {
                       : 'border-outline-variant bg-surface-container-low text-on-surface hover:bg-surface-container-high'
                   }`}
                 >
-                  {mm.label}
+                  {t(`meal.${mm.key}`)}
                 </button>
               ))}
             </div>
@@ -306,7 +308,7 @@ export default function CreateCustomFood() {
               className="flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-full bg-primary font-label-md text-label-md font-semibold text-on-primary shadow-sm transition-all hover:bg-on-primary-fixed-variant hover:shadow-md active:scale-95 disabled:opacity-60"
             >
               {busy ? <Spinner className="h-4 w-4" /> : <Icon name="save" className="text-[20px]" />}
-              {isEdit ? 'Save Changes' : 'Save Food'}
+              {isEdit ? t('createFood.saveChanges') : t('createFood.saveFood')}
             </button>
             <button
               type="button"
@@ -315,7 +317,7 @@ export default function CreateCustomFood() {
               className="flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-full bg-primary-container/20 font-label-md text-label-md font-semibold text-primary transition-all hover:bg-primary-container/30 active:scale-95 disabled:opacity-60"
             >
               <Icon name="add_task" className="text-[20px]" />
-              Save &amp; Add Today
+              {t('createFood.saveAddToday')}
             </button>
           </div>
         </form>
