@@ -26,3 +26,6 @@ yarn-error.log*
 
 # logs
 logs
+
+# supabase CLI local state (credentials cache, not source)
+supabase/.temp

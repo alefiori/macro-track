@@ -35,8 +35,8 @@ and the per-screen `code.html` files.
 | Build      | Vite + React 18 + TypeScript            |
 | Styling    | Tailwind CSS (via PostCSS, not the CDN) |
 | Routing    | React Router v6                         |
-| Backend    | Supabase (Postgres + Auth + RLS)        |
-| Food data  | Open Food Facts + USDA FoodData Central |
+| Backend    | Supabase (Postgres + Auth + RLS + Edge Functions)       |
+| Food data  | Open Food Facts + USDA FoodData Central (server-side proxy) |
 
 ## Getting started
 
@@ -67,7 +67,32 @@ This creates `macro_targets`, `foods`, and `food_logs`, enables RLS, and adds
 policies so each user can only read/write their own rows (global foods with a
 null `user_id` are readable by everyone).
 
-### 3. Configure environment variables
+### 3. Deploy the `food-search` Edge Function
+
+All external food lookups (text search + barcode) run **server-side** in a
+Supabase [Edge Function](supabase/functions/food-search), not from the browser.
+This is required: Open Food Facts' modern search API
+([Search-a-licious](https://search.openfoodfacts.org)) sends no CORS headers, so
+browsers can't call it directly, and the USDA API key must not ship in the client
+bundle. The function fans out to every source in parallel, normalizes results to a
+shared shape, and de-duplicates them.
+
+```bash
+supabase functions deploy food-search --project-ref <your-project-ref>
+
+# Optional: set the USDA key as a function secret (defaults to DEMO_KEY)
+supabase secrets set USDA_API_KEY=your-fdc-api-key --project-ref <your-project-ref>
+```
+
+A free USDA key comes from the
+[FoodData Central signup](https://fdc.nal.usda.gov/api-key-signup.html); without
+it the function uses the shared `DEMO_KEY`, which works but is heavily
+rate-limited (and may return 429s under load). Open Food Facts needs no key.
+
+> **Until the function is deployed, food search and barcode lookup return
+> nothing** — the client no longer calls the food APIs directly.
+
+### 4. Configure environment variables
 
 ```bash
 cp .env.example .env
@@ -78,23 +103,18 @@ Then fill in `.env` with your project's values:
 ```
 VITE_SUPABASE_URL=https://your-project-ref.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-public-key
-VITE_USDA_API_KEY=your-fdc-api-key
 ```
 
-`VITE_USDA_API_KEY` is optional — grab a free key from the
-[FoodData Central signup](https://fdc.nal.usda.gov/api-key-signup.html). If
-omitted, the app falls back to the shared `DEMO_KEY`, which works but is heavily
-rate-limited (and may return 429s under load). Open Food Facts needs no key.
-
-`.env` is gitignored — never commit secrets. The anon key is safe to ship in a
-client bundle; RLS is what protects your data.
+No food-API keys live here — they're function secrets (see step 3), kept out of
+the client bundle. `.env` is gitignored — never commit secrets. The anon key is
+safe to ship in a client bundle; RLS is what protects your data.
 
 > **Email confirmation:** by default Supabase requires email confirmation on
 > sign-up. For local testing you can disable it under
 > **Authentication → Providers → Email** so new accounts can sign in
 > immediately.
 
-### 4. Install and run
+### 5. Install and run
 
 ```bash
 npm install
@@ -123,13 +143,17 @@ OFF, `fdcId` for USDA), and `is_custom=false` — de-duplicating on
 a stable local food. Results missing carbohydrate/protein/fat data are skipped.
 
 Search ([`useFoodSearch`](src/hooks/useFoodSearch.ts)) queries the user's own
-foods plus both external sources in parallel; failures in either external source
-degrade gracefully to no results from that source. Each source has a small
-adapter that normalizes to a shared `ExternalFood` shape
-([`openfoodfacts.ts`](src/lib/openfoodfacts.ts),
-[`usda.ts`](src/lib/usda.ts)). All math (4/4/9 kcal per gram, per-serving
-scaling, per-100g conversion, remaining-vs-target, ring offsets) lives in
-[`src/lib/macros.ts`](src/lib/macros.ts).
+foods (locally, via Supabase) alongside a single call to the
+[`food-search` Edge Function](supabase/functions/food-search/index.ts) through a
+thin client ([`src/lib/foodApi.ts`](src/lib/foodApi.ts)). The function holds a
+small registry of source adapters — currently Open Food Facts (via
+Search-a-licious) and USDA — runs them in parallel, normalizes each to the shared
+`ExternalFood` shape, and merges + de-duplicates across sources; a failing source
+degrades gracefully to no results from that source. **Adding a new source**
+(e.g. FatSecret, Nutritionix) is a server-side-only change: add an adapter to the
+function's `SOURCES` array — no client or env changes needed. All math (4/4/9 kcal
+per gram, per-serving scaling, per-100g conversion, remaining-vs-target, ring
+offsets) lives in [`src/lib/macros.ts`](src/lib/macros.ts).
 
 ## Project structure
 
@@ -138,9 +162,10 @@ src/
   components/   # layout, UI primitives, Add Food modal
   context/      # AuthContext, AppShellContext
   hooks/        # useFoodLogs, useTargets, useFoodSearch, useDebounce
-  lib/          # supabase client, macros math, Open Food Facts, types
+  lib/          # supabase client, macros math, foodApi (Edge Function client), types
   pages/        # Auth, Dashboard, Targets, MyFoods, CreateCustomFood, Profile
 supabase/
+  functions/    # food-search Edge Function (external food data proxy)
   migrations/   # SQL schema + RLS
 ```
 

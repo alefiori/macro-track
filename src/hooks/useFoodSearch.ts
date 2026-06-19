@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { searchOpenFoodFacts } from '@/lib/openfoodfacts'
-import { searchUsda } from '@/lib/usda'
+import { searchExternalFoods } from '@/lib/foodApi'
 import type { ExternalFood } from '@/lib/foodSources'
 import type { Food } from '@/lib/database.types'
 import { useDebounce } from './useDebounce'
@@ -20,10 +19,11 @@ const externalId = (source: string, id: string) => `${source}:${id}`
 
 /**
  * Searches the user's own foods (custom + previously imported) and merges them
- * with live results from Open Food Facts and USDA FoodData Central. The query
- * is debounced (~350ms). Local matches come first; external rows already
- * present locally (same source + id) are de-duplicated out, as are duplicates
- * across the two external sources.
+ * with live results from external sources (Open Food Facts, USDA, …) returned
+ * by the `food-search` Edge Function, which already merges and de-duplicates
+ * across those sources. The query is debounced (~350ms). Local matches come
+ * first; external rows already present locally (same source + id) are
+ * de-duplicated out here.
  */
 export function useFoodSearch(query: string, offLanguage?: string) {
   const debounced = useDebounce(query.trim(), 350)
@@ -49,15 +49,15 @@ export function useFoodSearch(query: string, offLanguage?: string) {
           .limit(20)
 
         // External sources never reject the whole search — failures degrade to [].
-        const offPromise = searchOpenFoodFacts(debounced, controller.signal, offLanguage).catch(
-          () => [],
-        )
-        const usdaPromise = searchUsda(debounced, controller.signal).catch(() => [])
+        const externalPromise = searchExternalFoods(
+          debounced,
+          controller.signal,
+          offLanguage,
+        ).catch(() => [])
 
-        const [{ data: localData, error: localErr }, offData, usdaData] = await Promise.all([
+        const [{ data: localData, error: localErr }, externalData] = await Promise.all([
           localPromise,
-          offPromise,
-          usdaPromise,
+          externalPromise,
         ])
         if (cancelled) return
         if (localErr) throw new Error(localErr.message)
@@ -71,7 +71,7 @@ export function useFoodSearch(query: string, offLanguage?: string) {
         }
 
         const externalResults: SearchResult[] = []
-        for (const f of [...offData, ...usdaData]) {
+        for (const f of externalData) {
           const key = externalId(f.source, f.externalId)
           if (seen.has(key)) continue
           seen.add(key)
