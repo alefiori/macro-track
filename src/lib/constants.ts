@@ -67,3 +67,12 @@ export const SERVING_UNITS = ['g', 'ml', 'oz', 'cup', 'piece', 'tbsp', 'tsp', 's
  * module (`LOCALES`), since one preference drives both UI and OFF language.
  */
 export const DEFAULT_OFF_LANGUAGE = 'en'
+
+/**
+ * Display-only premium prices (e.g. "$4.99", "$39.99"), shown on the upgrade
+ * card. Optional — leave the env vars unset to show only the plan name and let
+ * Stripe Checkout reveal the price. The authoritative amount always lives in
+ * the Stripe Price, never here.
+ */
+export const PREMIUM_PRICE_MONTHLY = import.meta.env.VITE_PREMIUM_PRICE_MONTHLY ?? ''
+export const PREMIUM_PRICE_ANNUAL = import.meta.env.VITE_PREMIUM_PRICE_ANNUAL ?? ''

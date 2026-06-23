@@ -9,6 +9,7 @@ import { Icon } from '@/components/ui/Icon'
 import { Spinner, LoadingBlock } from '@/components/ui/Spinner'
 import { ProgressRing } from '@/components/ui/ProgressRing'
 import { SourceTag } from '@/components/ui/SourceTag'
+import { AdSlot } from '@/components/ads/AdSlot'
 import { MACROS, MEALS, type MealKey } from '@/lib/constants'
 import {
   calories,
@@ -283,6 +284,8 @@ export default function Dashboard() {
                   </div>
                 </div>
               </div>
+
+              <AdSlot placement="dashboard" />
             </div>
           </div>
         </>

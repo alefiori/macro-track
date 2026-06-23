@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from '@/context/AuthContext'
 import { AppShellProvider } from '@/context/AppShellContext'
 import { ProfileProvider } from '@/context/ProfileContext'
+import { PlanProvider } from '@/context/PlanContext'
 import { I18nProvider } from '@/context/I18nContext'
 import { RequireAuth } from '@/components/RequireAuth'
 import { LoadingBlock } from '@/components/ui/Spinner'
@@ -34,11 +35,13 @@ export default function App() {
             element={
               <RequireAuth>
                 <ProfileProvider>
-                  <I18nProvider>
-                    <AppShellProvider>
-                      <AppLayout />
-                    </AppShellProvider>
-                  </I18nProvider>
+                  <PlanProvider>
+                    <I18nProvider>
+                      <AppShellProvider>
+                        <AppLayout />
+                      </AppShellProvider>
+                    </I18nProvider>
+                  </PlanProvider>
                 </ProfileProvider>
               </RequireAuth>
             }

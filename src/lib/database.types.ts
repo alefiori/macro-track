@@ -42,6 +42,19 @@ export type Profile = {
   updated_at: string
 }
 
+export type Plan = 'free' | 'premium'
+
+export type Subscription = {
+  user_id: string
+  plan: Plan
+  status: string | null
+  stripe_customer_id: string | null
+  stripe_subscription_id: string | null
+  current_period_end: string | null
+  created_at: string
+  updated_at: string
+}
+
 export type FoodLog = {
   id: string
   user_id: string
@@ -84,6 +97,13 @@ export interface Database {
         Insert: Omit<Profile, 'created_at' | 'updated_at'> &
           Partial<Pick<Profile, 'off_language' | 'created_at' | 'updated_at'>>
         Update: Partial<Profile>
+        Relationships: []
+      }
+      subscriptions: {
+        Row: Subscription
+        Insert: Omit<Subscription, 'created_at' | 'updated_at'> &
+          Partial<Pick<Subscription, 'created_at' | 'updated_at'>>
+        Update: Partial<Subscription>
         Relationships: []
       }
     }
