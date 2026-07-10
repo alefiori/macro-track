@@ -15,6 +15,10 @@ interface AppShellValue {
   copiedDay: { date: string; count: number } | null
   copyDay: (date: string, count: number) => void
   clearCopiedDay: () => void
+  /** A single meal's foods captured for pasting into any meal/day, or null. */
+  copiedMeal: { date: string; meal: MealKey; count: number } | null
+  copyMeal: (date: string, meal: MealKey, count: number) => void
+  clearCopiedMeal: () => void
   /** internal — consumed by AppLayout to render the modal */
   _addFood: { open: boolean; meal?: MealKey }
   _closeAddFood: () => void
@@ -27,6 +31,9 @@ export function AppShellProvider({ children }: { children: ReactNode }) {
   const [foodLogVersion, setFoodLogVersion] = useState(0)
   const [addFood, setAddFood] = useState<{ open: boolean; meal?: MealKey }>({ open: false })
   const [copiedDay, setCopiedDay] = useState<{ date: string; count: number } | null>(null)
+  const [copiedMeal, setCopiedMeal] = useState<
+    { date: string; meal: MealKey; count: number } | null
+  >(null)
 
   const value: AppShellValue = {
     selectedDate,
@@ -36,6 +43,9 @@ export function AppShellProvider({ children }: { children: ReactNode }) {
     copiedDay,
     copyDay: (date, count) => setCopiedDay({ date, count }),
     clearCopiedDay: () => setCopiedDay(null),
+    copiedMeal,
+    copyMeal: (date, meal, count) => setCopiedMeal({ date, meal, count }),
+    clearCopiedMeal: () => setCopiedMeal(null),
     openAddFood: (opts) => setAddFood({ open: true, meal: opts?.meal }),
     _addFood: addFood,
     _closeAddFood: () => setAddFood({ open: false }),

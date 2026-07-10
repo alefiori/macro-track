@@ -1,0 +1,84 @@
+import { useEffect, useId, type ReactNode } from 'react'
+import { useScrollLock } from '@/hooks/useScrollLock'
+import { useI18n } from '@/context/I18nContext'
+
+/**
+ * A compact, app-styled confirmation dialog replacing the native
+ * `window.confirm`. Renders as a centered card on desktop and a bottom sheet on
+ * mobile, matching the overlay language of {@link Modal} but sized for a single
+ * question. Locks background scroll while open and closes on Escape / backdrop.
+ */
+export function ConfirmDialog({
+  open,
+  title,
+  message,
+  confirmLabel,
+  cancelLabel,
+  destructive = false,
+  busy = false,
+  onConfirm,
+  onCancel,
+}: {
+  open: boolean
+  title: string
+  message: ReactNode
+  confirmLabel?: string
+  cancelLabel?: string
+  destructive?: boolean
+  busy?: boolean
+  onConfirm: () => void
+  onCancel: () => void
+}) {
+  const { t } = useI18n()
+  const titleId = useId()
+
+  useScrollLock(open)
+
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onCancel()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open, onCancel])
+
+  if (!open) return null
+
+  return (
+    <div
+      className="fixed inset-0 z-[80] flex items-end justify-center bg-black/30 p-0 backdrop-blur-[4px] sm:items-center sm:p-lg"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) onCancel()
+      }}
+    >
+      <div className="flex w-full flex-col gap-md rounded-t-2xl bg-surface-container-lowest p-lg shadow-card sm:max-w-md sm:rounded-2xl">
+        <h2 id={titleId} className="font-headline-md text-headline-md text-on-surface">
+          {title}
+        </h2>
+        <p className="font-body-md text-body-md text-on-surface-variant">{message}</p>
+        <div className="mt-sm flex justify-end gap-sm">
+          <button
+            onClick={onCancel}
+            disabled={busy}
+            className="rounded-full px-4 py-2 font-label-md text-label-md text-on-surface-variant transition-colors hover:bg-surface-container-high disabled:opacity-40"
+          >
+            {cancelLabel ?? t('common.cancel')}
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={busy}
+            className={`rounded-full px-4 py-2 font-label-md text-label-md text-on-primary transition-opacity hover:opacity-90 disabled:opacity-40 ${
+              destructive ? 'bg-error' : 'bg-primary'
+            }`}
+          >
+            {confirmLabel ?? t('common.delete')}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}

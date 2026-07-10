@@ -326,11 +326,6 @@ export function AddFoodModal({
                       <div className="min-w-0">
                         <h3 className="truncate font-label-md text-label-md text-on-surface">{n.name}</h3>
                         <p className="truncate font-body-md text-sm text-on-surface-variant">{n.subtitle}</p>
-                        {n.source !== 'custom' && (
-                          <span className="mt-1 inline-block">
-                            <SourceTag source={n.source} />
-                          </span>
-                        )}
                       </div>
                     </div>
                     <div className="flex shrink-0 gap-3 font-label-md text-sm text-secondary">

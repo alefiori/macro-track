@@ -1,4 +1,5 @@
 import { useEffect, type ReactNode } from 'react'
+import { useScrollLock } from '@/hooks/useScrollLock'
 
 /**
  * Overlay container. On desktop it renders as a centered modal; on mobile as a
@@ -15,15 +16,15 @@ export function Modal({
   children: ReactNode
   labelledBy?: string
 }) {
+  useScrollLock(open)
+
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
     }
-    document.body.style.overflow = 'hidden'
     window.addEventListener('keydown', onKey)
     return () => {
-      document.body.style.overflow = ''
       window.removeEventListener('keydown', onKey)
     }
   }, [open, onClose])

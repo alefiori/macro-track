@@ -8,7 +8,6 @@ import { useFoodLogs } from '@/hooks/useFoodLogs'
 import { Icon } from '@/components/ui/Icon'
 import { Spinner, LoadingBlock } from '@/components/ui/Spinner'
 import { ProgressRing } from '@/components/ui/ProgressRing'
-import { SourceTag } from '@/components/ui/SourceTag'
 import { MACROS, MEALS, type MealKey } from '@/lib/constants'
 import {
   calories,
@@ -20,7 +19,7 @@ import {
   type MacroGrams,
 } from '@/lib/macros'
 import { addDays, dayOfWeek, formatLong, formatMonthDay, formatShort, formatWeekday, isToday, todayISO } from '@/lib/date'
-import { copyDayFoods, deleteFoodLog, updateLogServings } from '@/lib/foods'
+import { copyDayFoods, copyMealFoods, deleteFoodLog, updateLogServings } from '@/lib/foods'
 import type { FoodLogWithFood } from '@/lib/database.types'
 
 const ZERO: MacroGrams = { carbs_g: 0, protein_g: 0, fats_g: 0 }
@@ -35,6 +34,9 @@ export default function Dashboard() {
     copiedDay,
     copyDay,
     clearCopiedDay,
+    copiedMeal,
+    copyMeal,
+    clearCopiedMeal,
   } = useAppShell()
   const { byDay, loading: targetsLoading } = useTargets()
   const { logs, loading: logsLoading, error } = useFoodLogs(selectedDate, foodLogVersion)
@@ -42,6 +44,7 @@ export default function Dashboard() {
   const { t } = useI18n()
 
   const [pasting, setPasting] = useState(false)
+  const [pastingMeal, setPastingMeal] = useState<MealKey | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
 
   const canPasteHere = copiedDay !== null && copiedDay.date !== selectedDate
@@ -57,6 +60,20 @@ export default function Dashboard() {
       setActionError(e instanceof Error ? e.message : t('dashboard.failedPaste'))
     } finally {
       setPasting(false)
+    }
+  }
+
+  async function handlePasteMeal(targetMeal: MealKey) {
+    if (!copiedMeal) return
+    setPastingMeal(targetMeal)
+    setActionError(null)
+    try {
+      await copyMealFoods(copiedMeal.date, copiedMeal.meal, selectedDate, targetMeal)
+      bumpFoodLogVersion()
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : t('dashboard.failedPasteMeal'))
+    } finally {
+      setPastingMeal(null)
     }
   }
 
@@ -155,6 +172,28 @@ export default function Dashboard() {
         </div>
       )}
 
+      {copiedMeal && (
+        <div className="flex items-center justify-between gap-sm rounded-2xl border border-primary/30 bg-primary-container/10 p-md shadow-card">
+          <div className="flex min-w-0 items-center gap-sm text-on-surface">
+            <Icon name="content_paste" className="shrink-0 text-primary" />
+            <p className="truncate font-body-md text-body-md">
+              {t(copiedMeal.count === 1 ? 'dashboard.mealCopiedOne' : 'dashboard.mealCopiedOther', {
+                count: copiedMeal.count,
+                meal: t(`meal.${copiedMeal.meal}`),
+              })}{' '}
+              <span className="font-label-md text-label-md">{formatShort(copiedMeal.date, locale)}</span>
+            </p>
+          </div>
+          <button
+            onClick={clearCopiedMeal}
+            className="shrink-0 rounded-full p-2 text-on-surface-variant transition-colors hover:bg-surface-container-high"
+            aria-label={t('dashboard.clearCopiedMeal')}
+          >
+            <Icon name="close" className="text-sm" />
+          </button>
+        </div>
+      )}
+
       {actionError && (
         <p className="rounded-2xl bg-error-container px-md py-sm font-label-md text-label-md text-on-error-container">
           {actionError}
@@ -237,16 +276,23 @@ export default function Dashboard() {
               {logsLoading ? (
                 <LoadingBlock label={t('dashboard.loadingMeals')} />
               ) : (
-                MEALS.map((meal) => (
-                  <MealCard
-                    key={meal.key}
-                    mealKey={meal.key}
-                    icon={meal.icon}
-                    logs={logs.filter((l) => l.meal === meal.key)}
-                    onAdd={() => openAddFood({ meal: meal.key })}
-                    onChanged={bumpFoodLogVersion}
-                  />
-                ))
+                MEALS.map((meal) => {
+                  const mealLogs = logs.filter((l) => l.meal === meal.key)
+                  return (
+                    <MealCard
+                      key={meal.key}
+                      mealKey={meal.key}
+                      icon={meal.icon}
+                      logs={mealLogs}
+                      onAdd={() => openAddFood({ meal: meal.key })}
+                      onChanged={bumpFoodLogVersion}
+                      onCopy={() => copyMeal(selectedDate, meal.key, mealLogs.length)}
+                      canPaste={copiedMeal !== null}
+                      pasting={pastingMeal === meal.key}
+                      onPaste={() => handlePasteMeal(meal.key)}
+                    />
+                  )
+                })
               )}
             </div>
 
@@ -297,12 +343,20 @@ function MealCard({
   logs,
   onAdd,
   onChanged,
+  onCopy,
+  canPaste,
+  pasting,
+  onPaste,
 }: {
   mealKey: MealKey
   icon: string
   logs: FoodLogWithFood[]
   onAdd: () => void
   onChanged: () => void
+  onCopy: () => void
+  canPaste: boolean
+  pasting: boolean
+  onPaste: () => void
 }) {
   const { t } = useI18n()
   const label = t(`meal.${mealKey}`)
@@ -315,20 +369,43 @@ function MealCard({
         empty ? 'border border-dashed border-outline-variant/50' : ''
       }`}
     >
-      <div className="mb-md flex items-center justify-between border-b border-surface-container-high pb-sm">
-        <div className="flex items-center gap-sm">
+      <div className="mb-md flex items-center justify-between gap-sm border-b border-surface-container-high pb-sm">
+        <div className="flex min-w-0 items-center gap-sm">
           <Icon name={icon} className={empty ? 'text-on-surface-variant' : 'text-primary'} />
           <h3
-            className={`font-headline-md text-headline-md ${
+            className={`truncate font-headline-md text-headline-md ${
               empty ? 'text-on-surface-variant' : 'text-on-surface'
             }`}
           >
             {label}
           </h3>
         </div>
-        <span className="font-label-md text-label-md text-on-surface-variant">
-          {t('dashboard.mealKcal', { kcal: Math.round(mealKcal) })}
-        </span>
+        <div className="flex shrink-0 items-center gap-sm">
+          {canPaste && (
+            <button
+              onClick={onPaste}
+              disabled={pasting}
+              className="flex items-center gap-xs rounded-full bg-primary px-3 py-1 font-label-md text-label-md text-on-primary transition-opacity hover:opacity-90 disabled:opacity-40"
+              title={t('dashboard.pasteMealHere')}
+            >
+              {pasting ? <Spinner className="h-4 w-4" /> : <Icon name="content_paste" className="text-sm" />}
+              <span className="hidden sm:inline">{t('dashboard.pasteMealHere')}</span>
+            </button>
+          )}
+          {!empty && (
+            <button
+              onClick={onCopy}
+              className="rounded-full p-1 text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-primary"
+              aria-label={t('dashboard.copyMealAria', { meal: label })}
+              title={t('dashboard.copyMealAria', { meal: label })}
+            >
+              <Icon name="content_copy" className="text-sm" />
+            </button>
+          )}
+          <span className="font-label-md text-label-md text-on-surface-variant">
+            {t('dashboard.mealKcal', { kcal: Math.round(mealKcal) })}
+          </span>
+        </div>
       </div>
 
       {empty ? (
@@ -412,8 +489,18 @@ function FoodLogRow({ log, onChanged }: { log: FoodLogWithFood; onChanged: () =>
           <p className="truncate font-label-md text-label-md text-on-surface">{log.food.name}</p>
           <p className="flex items-center gap-2 truncate text-sm text-on-surface-variant">
             {loggedAmount} {log.food.serving_unit}
-            {log.food.source !== 'custom' && <SourceTag source={log.food.source} />}
           </p>
+          {/* Macros under the name on mobile, where the right column has no room. */}
+          {!editing && (
+            <div className="mt-0.5 flex items-center gap-sm text-xs text-on-surface-variant sm:hidden">
+              {MACROS.map((m) => (
+                <span key={m.key} className="flex items-center gap-1">
+                  <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: m.color }} />
+                  {round(scaled[m.field])}g
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -463,7 +550,7 @@ function FoodLogRow({ log, onChanged }: { log: FoodLogWithFood; onChanged: () =>
             <span className="w-16 text-right font-label-md text-label-md text-on-surface">
               {t('dashboard.mealKcal', { kcal: Math.round(kcal) })}
             </span>
-            <div className="flex opacity-0 transition-opacity group-hover:opacity-100">
+            <div className="flex opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
               <button
                 onClick={() => setEditing(true)}
                 className="p-1 text-on-surface-variant hover:text-primary"

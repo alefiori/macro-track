@@ -11,7 +11,7 @@ const inputClass =
   'w-full min-h-[48px] rounded-lg border border-outline-variant bg-surface px-md py-sm font-body-md text-body-md text-on-surface placeholder:text-on-surface-variant/70 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors'
 
 export default function AuthPage({ initialTab = 'signin' }: { initialTab?: Tab }) {
-  const { session, signIn, signUp } = useAuth()
+  const { session, signIn, signUp, signInAnonymously } = useAuth()
   const { t } = useI18n()
   const navigate = useNavigate()
 
@@ -61,6 +61,20 @@ export default function AuthPage({ initialTab = 'signin' }: { initialTab?: Tab }
     setTab(next)
     setError(null)
     setNotice(null)
+  }
+
+  async function handleGuest() {
+    setError(null)
+    setNotice(null)
+    setBusy(true)
+    try {
+      await signInAnonymously()
+      navigate('/', { replace: true })
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('auth.somethingWrong'))
+    } finally {
+      setBusy(false)
+    }
   }
 
   return (
@@ -218,6 +232,24 @@ export default function AuthPage({ initialTab = 'signin' }: { initialTab?: Tab }
               </p>
             )}
           </form>
+
+          {/* Guest access */}
+          <div className="flex items-center gap-sm">
+            <div className="h-px flex-1 bg-surface-container-high" />
+            <span className="font-label-md text-label-md text-on-surface-variant">
+              {t('auth.or')}
+            </span>
+            <div className="h-px flex-1 bg-surface-container-high" />
+          </div>
+          <button
+            type="button"
+            onClick={handleGuest}
+            disabled={busy}
+            className="flex min-h-[48px] w-full items-center justify-center gap-sm rounded-lg border border-outline-variant bg-surface font-label-md text-label-md text-on-surface transition-colors hover:bg-surface-container-high disabled:opacity-60"
+          >
+            <Icon name="person_outline" className="text-[18px]" />
+            <span>{t('auth.continueAsGuest')}</span>
+          </button>
         </div>
       </main>
     </div>

@@ -170,6 +170,47 @@ export async function copyDayFoods(fromDate: string, toDate: string): Promise<nu
   return rows.length
 }
 
+/**
+ * Copy the food logs of a single meal (slot) from one day into a meal on
+ * another day, preserving servings. The source and target meal may differ, so a
+ * copied breakfast can be pasted into any slot. Appends (doesn't replace).
+ * Returns the number of entries copied.
+ */
+export async function copyMealFoods(
+  fromDate: string,
+  fromMeal: MealKey,
+  toDate: string,
+  toMeal: MealKey,
+): Promise<number> {
+  const userId = await currentUserId()
+  const { data, error } = await supabase
+    .from('food_logs')
+    .select('food_id, servings')
+    .eq('log_date', fromDate)
+    .eq('meal', fromMeal)
+  if (error) throw new Error(error.message)
+
+  const rows = (data ?? []) as { food_id: string; servings: number }[]
+  if (rows.length === 0) return 0
+
+  const inserts = rows.map((r) => ({
+    user_id: userId,
+    food_id: r.food_id,
+    log_date: toDate,
+    meal: toMeal,
+    servings: r.servings,
+  }))
+  const { error: insErr } = await supabase.from('food_logs').insert(inserts)
+  if (insErr) throw new Error(insErr.message)
+  return rows.length
+}
+
+/** Share (or unshare) a custom food to the community. RLS enforces ownership. */
+export async function setFoodPublic(id: string, isPublic: boolean): Promise<void> {
+  const { error } = await supabase.from('foods').update({ is_public: isPublic }).eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
 export async function updateLogServings(id: string, servings: number): Promise<void> {
   const { error } = await supabase.from('food_logs').update({ servings }).eq('id', id)
   if (error) throw new Error(error.message)

@@ -5,6 +5,7 @@ import { useI18n } from '@/context/I18nContext'
 import { Icon } from '@/components/ui/Icon'
 import type { TranslationKey } from '@/lib/i18n'
 import { AddFoodModal } from '@/components/addfood/AddFoodModal'
+import { GuestBanner } from '@/components/layout/GuestBanner'
 
 interface NavItem {
   to: string
@@ -157,6 +158,7 @@ export default function AppLayout() {
       <TopAppBar />
 
       <main className="w-full flex-1 overflow-y-auto pb-[80px] pt-[72px] lg:ml-[280px] lg:pb-0 lg:pt-0">
+        <GuestBanner />
         <Outlet />
       </main>
 

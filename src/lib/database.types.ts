@@ -32,6 +32,8 @@ export type Food = {
   source: FoodSource
   off_id: string | null
   is_custom: boolean
+  /** When true, this custom food is shared to the community and readable by all. */
+  is_public: boolean
   created_at: string
 }
 
@@ -69,7 +71,8 @@ export interface Database {
       }
       foods: {
         Row: Food
-        Insert: Omit<Food, 'id' | 'created_at'> & Partial<Pick<Food, 'id' | 'created_at'>>
+        Insert: Omit<Food, 'id' | 'created_at' | 'is_public'> &
+          Partial<Pick<Food, 'id' | 'created_at' | 'is_public'>>
         Update: Partial<Food>
         Relationships: []
       }

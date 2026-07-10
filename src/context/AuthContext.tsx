@@ -13,8 +13,14 @@ interface AuthContextValue {
   session: Session | null
   user: User | null
   loading: boolean
+  /** True while signed in as an anonymous (guest) user. */
+  isAnonymous: boolean
   signIn: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string) => Promise<{ needsConfirmation: boolean }>
+  /** Start a guest session with no email/password (Supabase anonymous auth). */
+  signInAnonymously: () => Promise<void>
+  /** Convert the current guest into a permanent account, keeping their data. */
+  upgradeAccount: (email: string, password: string) => Promise<{ needsConfirmation: boolean }>
   signOut: () => Promise<void>
   resetPassword: (email: string) => Promise<void>
 }
@@ -45,6 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       session,
       user: session?.user ?? null,
       loading,
+      isAnonymous: session?.user?.is_anonymous ?? false,
       async signIn(email, password) {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
@@ -54,6 +61,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (error) throw error
         // When email confirmation is enabled, there's no active session yet.
         return { needsConfirmation: !data.session }
+      },
+      async signInAnonymously() {
+        const { error } = await supabase.auth.signInAnonymously()
+        if (error) throw error
+      },
+      async upgradeAccount(email, password) {
+        // Attach an email + password to the existing (anonymous) user, keeping
+        // the same user_id so all logged data carries over. When email
+        // confirmation is enabled, the change is pending until they verify.
+        const { data, error } = await supabase.auth.updateUser({ email, password })
+        if (error) throw error
+        return { needsConfirmation: Boolean(data.user?.new_email) }
       },
       async signOut() {
         const { error } = await supabase.auth.signOut()

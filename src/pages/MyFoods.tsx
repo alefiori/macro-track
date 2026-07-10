@@ -4,10 +4,10 @@ import { supabase } from '@/lib/supabase'
 import { useI18n } from '@/context/I18nContext'
 import { Icon } from '@/components/ui/Icon'
 import { LoadingBlock } from '@/components/ui/Spinner'
-import { SourceTag } from '@/components/ui/SourceTag'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { MACROS } from '@/lib/constants'
 import { calories, round } from '@/lib/macros'
-import { deleteFood, type CustomFoodPrefill } from '@/lib/foods'
+import { deleteFood, setFoodPublic, type CustomFoodPrefill } from '@/lib/foods'
 import type { Food } from '@/lib/database.types'
 
 /** Map an imported API food into prefill values for a brand-new custom copy. */
@@ -29,6 +29,7 @@ export default function MyFoods() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [query, setQuery] = useState('')
+  const [pendingDelete, setPendingDelete] = useState<Food | null>(null)
 
   const fetchFoods = useCallback(async () => {
     setLoading(true)
@@ -46,10 +47,10 @@ export default function MyFoods() {
     fetchFoods()
   }, [fetchFoods])
 
-  async function handleDelete(food: Food) {
-    if (!window.confirm(t('myFoods.deleteConfirm', { name: food.name }))) {
-      return
-    }
+  async function confirmDelete() {
+    const food = pendingDelete
+    if (!food) return
+    setPendingDelete(null)
     // Optimistic removal.
     const prev = foods
     setFoods((f) => f.filter((x) => x.id !== food.id))
@@ -58,6 +59,18 @@ export default function MyFoods() {
     } catch (err) {
       setFoods(prev)
       setError(err instanceof Error ? err.message : t('myFoods.couldNotDelete'))
+    }
+  }
+
+  async function togglePublic(food: Food) {
+    const next = !food.is_public
+    // Optimistic toggle.
+    setFoods((f) => f.map((x) => (x.id === food.id ? { ...x, is_public: next } : x)))
+    try {
+      await setFoodPublic(food.id, next)
+    } catch (err) {
+      setFoods((f) => f.map((x) => (x.id === food.id ? { ...x, is_public: !next } : x)))
+      setError(err instanceof Error ? err.message : t('myFoods.couldNotShare'))
     }
   }
 
@@ -145,22 +158,57 @@ export default function MyFoods() {
                     <p className="flex items-center gap-2 truncate text-sm text-on-surface-variant">
                       {food.brand ? `${food.brand} • ` : ''}
                       {food.serving_amount} {food.serving_unit}
-                      {food.source !== 'custom' && <SourceTag source={food.source} />}
+                      {food.is_public && (
+                        <span className="flex shrink-0 items-center gap-0.5 text-secondary">
+                          <Icon name="public" className="text-[14px]" />
+                          {t('myFoods.shared')}
+                        </span>
+                      )}
                     </p>
+                    {/* Macros under the name on mobile, where the right column has no room. */}
+                    <div className="mt-1 flex items-center gap-sm text-xs text-on-surface-variant sm:hidden">
+                      <span className="font-medium text-secondary">
+                        {Math.round(calories(food))} {t('common.kcal')}
+                      </span>
+                      {MACROS.map((m) => (
+                        <span key={m.key} className="flex items-center gap-1">
+                          <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: m.color }} />
+                          {round(food[m.field])}g
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 </div>
-                <div className="flex shrink-0 items-center gap-3 font-label-md text-sm text-secondary">
-                  <span className="flex flex-col items-center">
-                    <b>{Math.round(calories(food))}</b>
-                    <span className="text-xs font-normal text-on-surface-variant">{t('common.kcal')}</span>
-                  </span>
-                  {MACROS.map((m) => (
-                    <span key={m.key} className="hidden flex-col items-center sm:flex" style={{ color: m.color }}>
-                      <b>{round(food[m.field])}g</b>
-                      <span className="text-xs font-normal text-on-surface-variant">{t(`macro.${m.key}Abbr`)}</span>
+                <div className="flex shrink-0 items-center gap-2 font-label-md text-sm text-secondary sm:gap-3">
+                  <div className="hidden items-center gap-2 sm:flex sm:gap-3">
+                    <span className="flex flex-col items-center">
+                      <b>{Math.round(calories(food))}</b>
+                      <span className="text-xs font-normal text-on-surface-variant">{t('common.kcal')}</span>
                     </span>
-                  ))}
-                  <div className="flex items-center opacity-0 transition-all group-hover:opacity-100">
+                    {MACROS.map((m) => (
+                      <span key={m.key} className="flex flex-col items-center" style={{ color: m.color }}>
+                        <b>{round(food[m.field])}g</b>
+                        <span className="text-xs font-normal text-on-surface-variant">{t(`macro.${m.key}Abbr`)}</span>
+                      </span>
+                    ))}
+                  </div>
+                  <div className="flex items-center transition-all sm:opacity-0 sm:group-hover:opacity-100">
+                    {food.is_custom && (
+                      <button
+                        onClick={() => togglePublic(food)}
+                        className={`rounded-full p-1 transition-colors hover:text-primary ${
+                          food.is_public ? 'text-primary' : 'text-on-surface-variant'
+                        }`}
+                        aria-label={
+                          food.is_public
+                            ? t('myFoods.unshareAria', { name: food.name })
+                            : t('myFoods.shareAria', { name: food.name })
+                        }
+                        title={food.is_public ? t('myFoods.unshare') : t('myFoods.shareToCommunity')}
+                      >
+                        <Icon name={food.is_public ? 'public_off' : 'public'} className="text-[20px]" />
+                      </button>
+                    )}
                     {food.is_custom ? (
                       <Link
                         to={`/foods/${food.id}/edit`}
@@ -182,7 +230,7 @@ export default function MyFoods() {
                       </Link>
                     )}
                     <button
-                      onClick={() => handleDelete(food)}
+                      onClick={() => setPendingDelete(food)}
                       className="rounded-full p-1 text-on-surface-variant transition-colors hover:text-error"
                       aria-label={t('myFoods.deleteAria', { name: food.name })}
                     >
@@ -195,6 +243,16 @@ export default function MyFoods() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title={t('myFoods.deleteTitle')}
+        message={pendingDelete ? t('myFoods.deleteConfirm', { name: pendingDelete.name }) : ''}
+        confirmLabel={t('common.delete')}
+        destructive
+        onConfirm={confirmDelete}
+        onCancel={() => setPendingDelete(null)}
+      />
     </div>
   )
 }
