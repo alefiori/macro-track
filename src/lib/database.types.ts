@@ -1,7 +1,7 @@
 /** Hand-written types mirroring the SQL schema in supabase/migrations. */
 
 export type MealKey = 'breakfast' | 'lunch' | 'dinner' | 'snack'
-export type FoodSource = 'custom' | 'openfoodfacts' | 'usda'
+export type FoodSource = 'custom' | 'openfoodfacts' | 'usda' | 'edamam'
 /** External (non-custom) food databases the app imports from. */
 export type ExternalSource = Exclude<FoodSource, 'custom'>
 

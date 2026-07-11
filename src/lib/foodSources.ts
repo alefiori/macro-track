@@ -1,8 +1,9 @@
 import type { ExternalSource, FoodSource } from './database.types'
 
 /**
- * A food from an external database (Open Food Facts, USDA FoodData Central),
- * normalized to a fixed 100 g basis so it maps cleanly onto our `foods` model.
+ * A food from an external database (Open Food Facts, USDA FoodData Central,
+ * Edamam), normalized to a fixed 100 g basis so it maps cleanly onto our
+ * `foods` model.
  * `externalId` is stored in the `foods.off_id` column and de-duplicated per
  * source.
  */
@@ -23,6 +24,7 @@ export const SOURCE_LABELS: Record<FoodSource, string> = {
   custom: 'Custom',
   openfoodfacts: 'Open Food Facts',
   usda: 'USDA',
+  edamam: 'Edamam',
 }
 
 /** Icon (Material Symbols) per source. */
@@ -30,4 +32,5 @@ export const SOURCE_ICONS: Record<FoodSource, string> = {
   custom: 'restaurant',
   openfoodfacts: 'public',
   usda: 'verified',
+  edamam: 'nutrition',
 }

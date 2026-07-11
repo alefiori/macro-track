@@ -9,7 +9,8 @@
 //
 // Two modes (GET query params):
 //   ?q=milk&lang=en     -> text search, fans out to every source, merged+deduped
-//   ?barcode=3017620...  -> single-product lookup (Open Food Facts only)
+//   ?barcode=3017620...  -> single-product lookup (Open Food Facts, falling
+//                           back to Edamam UPC lookup when OFF has no match)
 //
 // Adding a new source: write a `SearchFn` that returns ExternalFood[] and add it
 // to the SOURCES array below. Read any API key via Deno.env.get(...). Nothing
@@ -17,16 +18,21 @@
 //
 // Deploy:  supabase functions deploy food-search
 //          supabase secrets set USDA_API_KEY=...   (optional; defaults to DEMO_KEY)
+//          supabase secrets set EDAMAM_APP_ID=... EDAMAM_APP_KEY=...   (optional;
+//          Edamam is skipped when unset — https://developer.edamam.com/food-database-api)
 // Local:   supabase functions serve food-search
 
 const OFF_SEARCH_URL = 'https://search.openfoodfacts.org/search'
 const OFF_PRODUCT_URL = 'https://world.openfoodfacts.org/api/v2/product'
 const USDA_SEARCH_URL = 'https://api.nal.usda.gov/fdc/v1/foods/search'
+const EDAMAM_PARSER_URL = 'https://api.edamam.com/api/food-database/v2/parser'
 
 const USER_AGENT = 'MacroTrack/0.1 (daily macros tracker; +https://github.com/macrotrack)'
 const DEFAULT_LANG = 'en'
 const PAGE_SIZE = '20'
 const USDA_API_KEY = Deno.env.get('USDA_API_KEY') || 'DEMO_KEY'
+const EDAMAM_APP_ID = Deno.env.get('EDAMAM_APP_ID') || ''
+const EDAMAM_APP_KEY = Deno.env.get('EDAMAM_APP_KEY') || ''
 
 const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -37,7 +43,7 @@ const CORS_HEADERS: Record<string, string> = {
 
 // Mirrors src/lib/foodSources.ts ExternalFood (kept in sync intentionally; the
 // Deno runtime can't import from the app's src/).
-type ExternalSource = 'openfoodfacts' | 'usda'
+type ExternalSource = 'openfoodfacts' | 'usda' | 'edamam'
 interface ExternalFood {
   source: ExternalSource
   externalId: string
@@ -247,12 +253,100 @@ const searchUsda: SearchFn = async (q, _lang, signal) => {
 }
 
 // ---------------------------------------------------------------------------
+// Edamam Food Database (parser endpoint)
+// ---------------------------------------------------------------------------
+
+interface EdamamFood {
+  foodId?: string
+  label?: string
+  brand?: string
+  // Nutrients are per 100 g: ENERC_KCAL energy, PROCNT protein, FAT fat,
+  // CHOCDF carbohydrate. Edamam omits keys it has no value for.
+  nutrients?: Record<string, number | undefined>
+}
+interface EdamamHit {
+  food?: EdamamFood
+}
+
+function edamamNutrient(f: EdamamFood, key: string): number | null {
+  const v = f.nutrients?.[key]
+  return typeof v === 'number' && Number.isFinite(v) ? v : null
+}
+
+function normalizeEdamam(f: EdamamFood | undefined): ExternalFood | null {
+  if (!f) return null
+  const id = (f.foodId || '').trim()
+  const name = (f.label || '').trim()
+  if (!id || !name) return null
+
+  const carbs = edamamNutrient(f, 'CHOCDF')
+  const protein = edamamNutrient(f, 'PROCNT')
+  const fat = edamamNutrient(f, 'FAT')
+  // Edamam omits zero-valued nutrients, so a missing macro on an otherwise
+  // nutrition-bearing entry means 0 — but drop entries with no macro data at
+  // all (e.g. bare parser matches without nutrition).
+  if (carbs === null && protein === null && fat === null) return null
+
+  return {
+    source: 'edamam',
+    externalId: id,
+    name,
+    brand: (f.brand || '').trim() || null,
+    serving_amount: 100,
+    serving_unit: 'g',
+    carbs_g: round(carbs ?? 0),
+    protein_g: round(protein ?? 0),
+    fats_g: round(fat ?? 0),
+  }
+}
+
+/** Call the parser endpoint with either `ingr` (text) or `upc` (barcode). */
+async function edamamParse(
+  query: Record<string, string>,
+  signal: AbortSignal,
+): Promise<ExternalFood[]> {
+  if (!EDAMAM_APP_ID || !EDAMAM_APP_KEY) return [] // credentials not configured; skip
+  const params = new URLSearchParams({
+    app_id: EDAMAM_APP_ID,
+    app_key: EDAMAM_APP_KEY,
+    'nutrition-type': 'logging',
+    ...query,
+  })
+  const res = await fetch(`${EDAMAM_PARSER_URL}?${params.toString()}`, {
+    headers: { Accept: 'application/json' },
+    signal,
+  })
+  // Edamam answers 404 for an unknown UPC — a miss, not a failure.
+  if (res.status === 404) return []
+  if (!res.ok) throw new Error(`Edamam search failed (${res.status})`)
+  const data = (await res.json()) as { parsed?: EdamamHit[]; hints?: EdamamHit[] }
+  // `parsed` holds exact matches, `hints` related ones; the same foodId can
+  // appear in both — the shared dedupe() pass drops the repeats.
+  return [...(data.parsed ?? []), ...(data.hints ?? [])]
+    .map((h) => normalizeEdamam(h.food))
+    .filter((f): f is ExternalFood => !!f)
+    .slice(0, Number(PAGE_SIZE))
+}
+
+/** Text search via the parser endpoint. English-only, so `lang` is ignored. */
+const searchEdamam: SearchFn = (q, _lang, signal) => edamamParse({ ingr: q }, signal)
+
+async function lookupEdamamBarcode(
+  code: string,
+  signal: AbortSignal,
+): Promise<ExternalFood | null> {
+  const foods = await edamamParse({ upc: code }, signal)
+  return foods[0] ?? null
+}
+
+// ---------------------------------------------------------------------------
 // Source registry — add new sources here.
 // ---------------------------------------------------------------------------
 
 const SOURCES: { name: string; search: SearchFn }[] = [
   { name: 'openfoodfacts', search: searchOpenFoodFacts },
   { name: 'usda', search: searchUsda },
+  { name: 'edamam', search: searchEdamam },
 ]
 
 /** Run every source in parallel; a failing source degrades to [] (never the whole search). */
@@ -287,8 +381,22 @@ Deno.serve(async (req: Request) => {
     const barcode = (url.searchParams.get('barcode') ?? '').trim()
 
     if (barcode) {
-      const food = await lookupOffBarcode(barcode, lang, req.signal)
-      return json(food ? [food] : [], 200)
+      // Open Food Facts first (richer, localized data), then Edamam's UPC
+      // lookup for products OFF doesn't know. A source erroring (not just
+      // missing the product) moves on to the next instead of failing the call.
+      const lookups = [
+        () => lookupOffBarcode(barcode, lang, req.signal),
+        () => lookupEdamamBarcode(barcode, req.signal),
+      ]
+      for (const lookup of lookups) {
+        try {
+          const food = await lookup()
+          if (food) return json([food], 200)
+        } catch (err) {
+          if (err instanceof Error && err.name === 'AbortError') throw err
+        }
+      }
+      return json([], 200)
     }
 
     const q = (url.searchParams.get('q') ?? '').trim()

@@ -46,7 +46,10 @@ export async function searchExternalFoods(
   return callFunction(new URLSearchParams({ q, lang }), signal)
 }
 
-/** Barcode lookup (Open Food Facts). Returns the product or null when not found. */
+/**
+ * Barcode lookup (Open Food Facts, with an Edamam UPC fallback server-side).
+ * Returns the product or null when not found.
+ */
 export async function lookupBarcode(
   barcode: string,
   signal?: AbortSignal,

@@ -9,8 +9,8 @@ async function currentUserId(): Promise<string> {
 }
 
 /**
- * Ensure an external food (Open Food Facts / USDA) exists as a local `foods`
- * row and return it. De-duplicates on (source, off_id) so logs always
+ * Ensure an external food (Open Food Facts / USDA / Edamam) exists as a local
+ * `foods` row and return it. De-duplicates on (source, off_id) so logs always
  * reference a stable local food and the same item isn't imported twice.
  */
 export async function upsertExternalFood(food: ExternalFood): Promise<Food> {

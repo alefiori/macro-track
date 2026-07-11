@@ -82,12 +82,19 @@ supabase functions deploy food-search --project-ref <your-project-ref>
 
 # Optional: set the USDA key as a function secret (defaults to DEMO_KEY)
 supabase secrets set USDA_API_KEY=your-fdc-api-key --project-ref <your-project-ref>
+
+# Optional: enable the Edamam source (skipped entirely when unset)
+supabase secrets set EDAMAM_APP_ID=your-app-id EDAMAM_APP_KEY=your-app-key --project-ref <your-project-ref>
 ```
 
 A free USDA key comes from the
 [FoodData Central signup](https://fdc.nal.usda.gov/api-key-signup.html); without
 it the function uses the shared `DEMO_KEY`, which works but is heavily
 rate-limited (and may return 429s under load). Open Food Facts needs no key.
+Edamam credentials come from the
+[Edamam Food Database API](https://developer.edamam.com/food-database-api)
+(free tier available); without them the Edamam source is silently skipped and
+the other sources still work.
 
 > **Until the function is deployed, food search and barcode lookup return
 > nothing** — the client no longer calls the food APIs directly.
@@ -132,13 +139,14 @@ npm run preview    # preview the production build
 
 ## How external food data is modeled
 
-Both Open Food Facts and USDA FoodData Central report nutrients **per 100 g**, so
-every imported food is stored on a fixed **100 g basis** (`serving_amount=100`,
-`serving_unit='g'`) using the per-100g values directly — logging then works in
-multiples of 100 g (1.5 servings = 150 g). When a search result is logged, the
-app **upserts** it into `foods` with the appropriate `source`
-(`'openfoodfacts'` or `'usda'`), `off_id=<the source's id>` (barcode/code for
-OFF, `fdcId` for USDA), and `is_custom=false` — de-duplicating on
+Open Food Facts, USDA FoodData Central, and Edamam all report nutrients
+**per 100 g**, so every imported food is stored on a fixed **100 g basis**
+(`serving_amount=100`, `serving_unit='g'`) using the per-100g values directly —
+logging then works in multiples of 100 g (1.5 servings = 150 g). When a search
+result is logged, the app **upserts** it into `foods` with the appropriate
+`source` (`'openfoodfacts'`, `'usda'`, or `'edamam'`), `off_id=<the source's id>`
+(barcode/code for OFF, `fdcId` for USDA, `foodId` for Edamam), and
+`is_custom=false` — de-duplicating on
 `(source, off_id)` — before inserting the `food_logs` row. Logs always reference
 a stable local food. Results missing carbohydrate/protein/fat data are skipped.
 
@@ -147,7 +155,8 @@ foods (locally, via Supabase) alongside a single call to the
 [`food-search` Edge Function](supabase/functions/food-search/index.ts) through a
 thin client ([`src/lib/foodApi.ts`](src/lib/foodApi.ts)). The function holds a
 small registry of source adapters — currently Open Food Facts (via
-Search-a-licious) and USDA — runs them in parallel, normalizes each to the shared
+Search-a-licious), USDA, and Edamam — runs them in parallel, normalizes each to
+the shared
 `ExternalFood` shape, and merges + de-duplicates across sources; a failing source
 degrades gracefully to no results from that source. **Adding a new source**
 (e.g. FatSecret, Nutritionix) is a server-side-only change: add an adapter to the
