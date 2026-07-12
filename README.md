@@ -1,5 +1,8 @@
 # MacroTrack
 
+[![CI](https://github.com/alefiori/macro-track/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/alefiori/macro-track/actions/workflows/ci.yml)
+[![Netlify Status](https://api.netlify.com/api/v1/badges/711ad0e3-f068-4066-8538-38bab13b2bab/deploy-status)](https://app.netlify.com/sites/macros-track/deploys)
+
 A responsive daily macros tracker built with **React + Vite + TypeScript**,
 **Tailwind CSS**, and **Supabase** (Postgres + Auth). Set per-weekday macro
 targets, log foods against them, and watch your daily carbs / protein / fats
