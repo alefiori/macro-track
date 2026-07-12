@@ -10,6 +10,7 @@ export const pt: Translation = {
     delete: 'Eliminar',
     kcal: 'kcal',
     optional: 'opcional',
+    community: 'Comunidade',
   },
   nav: {
     dashboard: 'Painel',
@@ -129,6 +130,7 @@ export const pt: Translation = {
     deleteConfirm: 'Eliminar "{name}"? Os registos que o referenciam também serão removidos.',
     couldNotDelete: 'Não foi possível eliminar o alimento.',
     couldNotShare: 'Não foi possível atualizar a partilha.',
+    sharedInUse: 'Este alimento está partilhado e outras pessoas registaram-no. Deixe de o partilhar em vez de o eliminar.',
     shared: 'Partilhado',
     shareToCommunity: 'Partilhar com a comunidade',
     unshare: 'Deixar de partilhar',

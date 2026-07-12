@@ -10,6 +10,7 @@ export const fr: Translation = {
     delete: 'Supprimer',
     kcal: 'kcal',
     optional: 'facultatif',
+    community: 'Communauté',
   },
   nav: {
     dashboard: 'Tableau de bord',
@@ -129,6 +130,7 @@ export const fr: Translation = {
     deleteConfirm: 'Supprimer « {name} » ? Les journaux qui y font référence seront également supprimés.',
     couldNotDelete: 'Impossible de supprimer l’aliment.',
     couldNotShare: 'Impossible de mettre à jour le partage.',
+    sharedInUse: 'Cet aliment est partagé et d’autres personnes l’ont enregistré. Cessez de le partager au lieu de le supprimer.',
     shared: 'Partagé',
     shareToCommunity: 'Partager avec la communauté',
     unshare: 'Ne plus partager',

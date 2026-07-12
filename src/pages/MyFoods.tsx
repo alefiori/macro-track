@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/context/AuthContext'
 import { useI18n } from '@/context/I18nContext'
 import { Icon } from '@/components/ui/Icon'
 import { LoadingBlock } from '@/components/ui/Spinner'
@@ -25,6 +26,7 @@ function toPrefill(food: Food): CustomFoodPrefill {
 
 export default function MyFoods() {
   const { t } = useI18n()
+  const { user } = useAuth()
   const [foods, setFoods] = useState<Food[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -32,16 +34,20 @@ export default function MyFoods() {
   const [pendingDelete, setPendingDelete] = useState<Food | null>(null)
 
   const fetchFoods = useCallback(async () => {
+    if (!user) return
     setLoading(true)
     setError(null)
+    // Scope to the current user explicitly: RLS also admits other people's
+    // shared (is_public) foods, which belong in search — not in "My Foods".
     const { data, error: err } = await supabase
       .from('foods')
       .select('*')
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false })
     if (err) setError(err.message)
     else setFoods((data as Food[]) ?? [])
     setLoading(false)
-  }, [])
+  }, [user])
 
   useEffect(() => {
     fetchFoods()
@@ -58,7 +64,13 @@ export default function MyFoods() {
       await deleteFood(food.id)
     } catch (err) {
       setFoods(prev)
-      setError(err instanceof Error ? err.message : t('myFoods.couldNotDelete'))
+      const msg = err instanceof Error ? err.message : ''
+      // Raised by the prevent_delete_shared_food_in_use trigger (migration 0006).
+      setError(
+        msg.includes('shared_food_in_use')
+          ? t('myFoods.sharedInUse')
+          : msg || t('myFoods.couldNotDelete'),
+      )
     }
   }
 

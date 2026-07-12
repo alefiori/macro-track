@@ -24,7 +24,11 @@ export function useFoodLogs(date: string, version: number) {
       setState({ logs: [], loading: false, error: error.message })
       return
     }
-    setState({ logs: (data as unknown as FoodLogWithFood[]) ?? [], loading: false, error: null })
+    // Defensive: if a joined food ever becomes unreadable (e.g. unshared out
+    // from under us), the join yields a null food — drop those rather than
+    // letting every consumer crash on `log.food.name`.
+    const logs = ((data as unknown as FoodLogWithFood[]) ?? []).filter((l) => l.food != null)
+    setState({ logs, loading: false, error: null })
   }, [date])
 
   useEffect(() => {

@@ -10,6 +10,7 @@ export const es: Translation = {
     delete: 'Eliminar',
     kcal: 'kcal',
     optional: 'opcional',
+    community: 'Comunidad',
   },
   nav: {
     dashboard: 'Panel',
@@ -129,6 +130,7 @@ export const es: Translation = {
     deleteConfirm: '¿Eliminar "{name}"? También se eliminarán los registros que lo referencian.',
     couldNotDelete: 'No se pudo eliminar el alimento.',
     couldNotShare: 'No se pudo actualizar el uso compartido.',
+    sharedInUse: 'Este alimento está compartido y otras personas lo han registrado. Deja de compartirlo en vez de eliminarlo.',
     shared: 'Compartido',
     shareToCommunity: 'Compartir con la comunidad',
     unshare: 'Dejar de compartir',

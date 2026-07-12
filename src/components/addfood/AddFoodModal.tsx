@@ -12,6 +12,7 @@ const BarcodeScanner = lazy(() =>
 )
 import { useFoodSearch, type SearchResult } from '@/hooks/useFoodSearch'
 import { useAppShell } from '@/context/AppShellContext'
+import { useAuth } from '@/context/AuthContext'
 import { useProfile } from '@/context/ProfileContext'
 import { useI18n } from '@/context/I18nContext'
 import { MACROS, MEALS, type MealKey } from '@/lib/constants'
@@ -57,6 +58,7 @@ export function AddFoodModal({
   const navigate = useNavigate()
   const { selectedDate, bumpFoodLogVersion } = useAppShell()
   const { offLanguage, locale } = useProfile()
+  const { user } = useAuth()
   const { t } = useI18n()
 
   const [query, setQuery] = useState('')
@@ -303,6 +305,9 @@ export function AddFoodModal({
                 const n = normalize(r)
                 const kcal = calories(n)
                 const isSelected = selected?.id === r.id
+                // A local row owned by someone else is a food shared to the community.
+                const isCommunity =
+                  r.kind === 'local' && r.food.user_id !== null && r.food.user_id !== user?.id
                 return (
                   <button
                     key={r.id}
@@ -321,11 +326,27 @@ export function AddFoodModal({
                             : 'bg-surface-container-high text-secondary'
                         }`}
                       >
-                        <Icon name={n.source === 'custom' ? 'restaurant' : SOURCE_ICONS[n.source]} />
+                        <Icon
+                          name={
+                            isCommunity
+                              ? 'group'
+                              : n.source === 'custom'
+                                ? 'restaurant'
+                                : SOURCE_ICONS[n.source]
+                          }
+                        />
                       </div>
                       <div className="min-w-0">
                         <h3 className="truncate font-label-md text-label-md text-on-surface">{n.name}</h3>
-                        <p className="truncate font-body-md text-sm text-on-surface-variant">{n.subtitle}</p>
+                        <p className="flex items-center gap-2 truncate font-body-md text-sm text-on-surface-variant">
+                          {n.subtitle}
+                          {isCommunity && (
+                            <span className="flex shrink-0 items-center gap-0.5 text-secondary">
+                              <Icon name="group" className="text-[14px]" />
+                              {t('common.community')}
+                            </span>
+                          )}
+                        </p>
                       </div>
                     </div>
                     <div className="flex shrink-0 gap-3 font-label-md text-sm text-secondary">

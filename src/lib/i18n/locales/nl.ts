@@ -10,6 +10,7 @@ export const nl: Translation = {
     delete: 'Verwijderen',
     kcal: 'kcal',
     optional: 'optioneel',
+    community: 'Community',
   },
   nav: {
     dashboard: 'Dashboard',
@@ -129,6 +130,7 @@ export const nl: Translation = {
     deleteConfirm: '"{name}" verwijderen? Logboeken die ernaar verwijzen worden ook verwijderd.',
     couldNotDelete: 'Voedingsmiddel kon niet worden verwijderd.',
     couldNotShare: 'Kan delen niet bijwerken.',
+    sharedInUse: 'Dit voedingsmiddel is gedeeld en anderen hebben het gelogd. Stop met delen in plaats van het te verwijderen.',
     shared: 'Gedeeld',
     shareToCommunity: 'Delen met de community',
     unshare: 'Niet meer delen',

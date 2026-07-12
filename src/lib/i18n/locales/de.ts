@@ -10,6 +10,7 @@ export const de: Translation = {
     delete: 'Löschen',
     kcal: 'kcal',
     optional: 'optional',
+    community: 'Community',
   },
   nav: {
     dashboard: 'Übersicht',
@@ -129,6 +130,7 @@ export const de: Translation = {
     deleteConfirm: '"{name}" löschen? Einträge, die darauf verweisen, werden ebenfalls entfernt.',
     couldNotDelete: 'Lebensmittel konnte nicht gelöscht werden.',
     couldNotShare: 'Freigabe konnte nicht aktualisiert werden.',
+    sharedInUse: 'Dieses Lebensmittel ist geteilt und andere haben es protokolliert. Hebe die Freigabe auf, statt es zu löschen.',
     shared: 'Geteilt',
     shareToCommunity: 'Mit der Community teilen',
     unshare: 'Freigabe aufheben',

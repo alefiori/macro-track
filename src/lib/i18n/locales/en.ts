@@ -15,6 +15,7 @@ export const en = {
     delete: 'Delete',
     kcal: 'kcal',
     optional: 'optional',
+    community: 'Community',
   },
   nav: {
     dashboard: 'Dashboard',
@@ -134,6 +135,7 @@ export const en = {
     deleteConfirm: 'Delete "{name}"? Logs that reference it will also be removed.',
     couldNotDelete: 'Could not delete food.',
     couldNotShare: 'Could not update sharing.',
+    sharedInUse: 'This food is shared and other people have logged it. Unshare it instead of deleting it.',
     shared: 'Shared',
     shareToCommunity: 'Share to community',
     unshare: 'Unshare',
