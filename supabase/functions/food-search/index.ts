@@ -1,9 +1,9 @@
 // Unified server-side proxy for all external food data requests.
 //
 // Why this exists: the app calls food APIs directly from the browser. Some of
-// those APIs can't be called client-side — Search-a-licious (Open Food Facts'
-// better search) serves no CORS headers, and the USDA key must not ship in the
-// browser bundle. This function runs every external lookup server-side (no CORS
+// those APIs can't be called client-side — Open Food Facts serves no CORS
+// headers on its search endpoint, and the USDA key must not ship in the browser
+// bundle. This function runs every external lookup server-side (no CORS
 // enforcement, secrets stay here), normalizes results to the app's ExternalFood
 // shape, and returns them with CORS headers the browser accepts.
 //
@@ -22,7 +22,10 @@
 //          Edamam is skipped when unset — https://developer.edamam.com/food-database-api)
 // Local:   supabase functions serve food-search
 
-const OFF_SEARCH_URL = 'https://search.openfoodfacts.org/search'
+// Text search uses the legacy CGI search endpoint. The newer Search-a-licious
+// host (search.openfoodfacts.org) was previously used here but now returns 502
+// for anonymous traffic, so it can no longer be relied on.
+const OFF_SEARCH_URL = 'https://world.openfoodfacts.org/cgi/search.pl'
 const OFF_PRODUCT_URL = 'https://world.openfoodfacts.org/api/v2/product'
 const USDA_SEARCH_URL = 'https://api.nal.usda.gov/fdc/v1/foods/search'
 const EDAMAM_PARSER_URL = 'https://api.edamam.com/api/food-database/v2/parser'
@@ -95,14 +98,14 @@ function dedupe(foods: ExternalFood[]): ExternalFood[] {
 }
 
 // ---------------------------------------------------------------------------
-// Open Food Facts (Search-a-licious for text, v2 product for barcode)
+// Open Food Facts (legacy CGI search for text, v2 product for barcode)
 // ---------------------------------------------------------------------------
 
 interface OffProduct {
   code?: string
   product_name?: string
-  // Search-a-licious returns brands as an array; the v2 product API returns a
-  // comma-separated string. Accept both.
+  // The CGI search and v2 product APIs return brands as a comma-separated
+  // string; Search-a-licious returned an array. Accept both.
   brands?: string | string[]
   nutriments?: Record<string, number | string | undefined>
   [key: string]: unknown
@@ -153,18 +156,24 @@ function normalizeOff(p: OffProduct, lang: string): ExternalFood | null {
 
 const searchOpenFoodFacts: SearchFn = async (q, lang, signal) => {
   const params = new URLSearchParams({
-    q,
+    search_terms: q,
+    search_simple: '1',
+    action: 'process',
+    json: '1',
     page_size: PAGE_SIZE,
-    langs: lang,
+    lc: lang,
     fields: offFields(lang),
   })
   const res = await fetch(`${OFF_SEARCH_URL}?${params.toString()}`, {
     headers: { 'User-Agent': USER_AGENT, Accept: 'application/json' },
     signal,
   })
+  // Under load OFF answers anonymous search traffic with a 503 HTML page;
+  // gating on res.ok keeps us from trying to JSON-parse it (the failure then
+  // degrades this source to [] upstream rather than sinking the whole search).
   if (!res.ok) throw new Error(`Open Food Facts search failed (${res.status})`)
-  const data = (await res.json()) as { hits?: OffProduct[] }
-  return (data.hits ?? []).map((p) => normalizeOff(p, lang)).filter((f): f is ExternalFood => !!f)
+  const data = (await res.json()) as { products?: OffProduct[] }
+  return (data.products ?? []).map((p) => normalizeOff(p, lang)).filter((f): f is ExternalFood => !!f)
 }
 
 async function lookupOffBarcode(

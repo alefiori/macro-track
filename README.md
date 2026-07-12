@@ -74,11 +74,10 @@ null `user_id` are readable by everyone).
 
 All external food lookups (text search + barcode) run **server-side** in a
 Supabase [Edge Function](supabase/functions/food-search), not from the browser.
-This is required: Open Food Facts' modern search API
-([Search-a-licious](https://search.openfoodfacts.org)) sends no CORS headers, so
-browsers can't call it directly, and the USDA API key must not ship in the client
-bundle. The function fans out to every source in parallel, normalizes results to a
-shared shape, and de-duplicates them.
+This is required: [Open Food Facts](https://world.openfoodfacts.org)' search API
+sends no CORS headers, so browsers can't call it directly, and the USDA API key
+must not ship in the client bundle. The function fans out to every source in
+parallel, normalizes results to a shared shape, and de-duplicates them.
 
 ```bash
 supabase functions deploy food-search --project-ref <your-project-ref>
@@ -157,9 +156,8 @@ Search ([`useFoodSearch`](src/hooks/useFoodSearch.ts)) queries the user's own
 foods (locally, via Supabase) alongside a single call to the
 [`food-search` Edge Function](supabase/functions/food-search/index.ts) through a
 thin client ([`src/lib/foodApi.ts`](src/lib/foodApi.ts)). The function holds a
-small registry of source adapters — currently Open Food Facts (via
-Search-a-licious), USDA, and Edamam — runs them in parallel, normalizes each to
-the shared
+small registry of source adapters — currently Open Food Facts, USDA, and
+Edamam — runs them in parallel, normalizes each to the shared
 `ExternalFood` shape, and merges + de-duplicates across sources; a failing source
 degrades gracefully to no results from that source. **Adding a new source**
 (e.g. FatSecret, Nutritionix) is a server-side-only change: add an adapter to the
