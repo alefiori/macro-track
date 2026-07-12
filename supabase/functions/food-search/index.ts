@@ -20,6 +20,10 @@
 //          supabase secrets set USDA_API_KEY=...   (optional; defaults to DEMO_KEY)
 //          supabase secrets set EDAMAM_APP_ID=... EDAMAM_APP_KEY=...   (optional;
 //          Edamam is skipped when unset — https://developer.edamam.com/food-database-api)
+//          supabase secrets set OFF_USERNAME=... OFF_PASSWORD=...   (optional; a
+//          regular Open Food Facts account — OFF has no API keys. When set, OFF
+//          requests are sent authenticated so they skip the anonymous rate limit
+//          that otherwise 503s under load. Sign up at https://world.openfoodfacts.org)
 // Local:   supabase functions serve food-search
 
 // Text search uses the legacy CGI search endpoint. The newer Search-a-licious
@@ -30,12 +34,20 @@ const OFF_PRODUCT_URL = 'https://world.openfoodfacts.org/api/v2/product'
 const USDA_SEARCH_URL = 'https://api.nal.usda.gov/fdc/v1/foods/search'
 const EDAMAM_PARSER_URL = 'https://api.edamam.com/api/food-database/v2/parser'
 
-const USER_AGENT = 'MacroTrack/0.1 (daily macros tracker; +https://github.com/macrotrack)'
+// OFF blocks/deprioritizes generic User-Agents and asks that heavier callers
+// identify a real contact, so keep this pointed at the actual project + email.
+const USER_AGENT =
+  'MacroTrack/0.1 (daily macros tracker; +https://github.com/alefiori/macro-track; alefiori97@gmail.com)'
 const DEFAULT_LANG = 'en'
 const PAGE_SIZE = '20'
 const USDA_API_KEY = Deno.env.get('USDA_API_KEY') || 'DEMO_KEY'
 const EDAMAM_APP_ID = Deno.env.get('EDAMAM_APP_ID') || ''
 const EDAMAM_APP_KEY = Deno.env.get('EDAMAM_APP_KEY') || ''
+// Open Food Facts has no API keys; authentication is HTTP Basic Auth with a
+// regular OFF account. When set, it lifts our requests out of the anonymous
+// rate limit. Skipped when unset (calls stay anonymous, best-effort).
+const OFF_USERNAME = Deno.env.get('OFF_USERNAME') || ''
+const OFF_PASSWORD = Deno.env.get('OFF_PASSWORD') || ''
 
 const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -130,6 +142,23 @@ function offFields(lang: string): string {
   return `code,product_name,product_name_${lang},brands,nutriments`
 }
 
+/**
+ * Headers for every Open Food Facts request: a descriptive User-Agent (OFF
+ * blocks generic ones) plus, when OFF_USERNAME/OFF_PASSWORD are configured,
+ * HTTP Basic Auth so the call skips the anonymous rate limit. OFF issues no
+ * API keys — a normal account is the only credential.
+ */
+function offHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {
+    'User-Agent': USER_AGENT,
+    Accept: 'application/json',
+  }
+  if (OFF_USERNAME && OFF_PASSWORD) {
+    headers.Authorization = `Basic ${btoa(`${OFF_USERNAME}:${OFF_PASSWORD}`)}`
+  }
+  return headers
+}
+
 /** Normalize one OFF product to a fixed 100 g basis. Null if any macro/code/name missing. */
 function normalizeOff(p: OffProduct, lang: string): ExternalFood | null {
   const code = p.code
@@ -165,7 +194,7 @@ const searchOpenFoodFacts: SearchFn = async (q, lang, signal) => {
     fields: offFields(lang),
   })
   const res = await fetch(`${OFF_SEARCH_URL}?${params.toString()}`, {
-    headers: { 'User-Agent': USER_AGENT, Accept: 'application/json' },
+    headers: offHeaders(),
     signal,
   })
   // Under load OFF answers anonymous search traffic with a 503 HTML page;
@@ -184,7 +213,7 @@ async function lookupOffBarcode(
   const params = new URLSearchParams({ lc: lang, fields: offFields(lang) })
   const res = await fetch(
     `${OFF_PRODUCT_URL}/${encodeURIComponent(code)}.json?${params.toString()}`,
-    { headers: { 'User-Agent': USER_AGENT, Accept: 'application/json' }, signal },
+    { headers: offHeaders(), signal },
   )
   if (!res.ok) throw new Error(`Open Food Facts lookup failed (${res.status})`)
   const data = (await res.json()) as { status?: number; product?: OffProduct }

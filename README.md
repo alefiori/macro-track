@@ -87,16 +87,26 @@ supabase secrets set USDA_API_KEY=your-fdc-api-key --project-ref <your-project-r
 
 # Optional: enable the Edamam source (skipped entirely when unset)
 supabase secrets set EDAMAM_APP_ID=your-app-id EDAMAM_APP_KEY=your-app-key --project-ref <your-project-ref>
+
+# Optional: authenticate Open Food Facts to skip its anonymous rate limit
+supabase secrets set OFF_USERNAME=your-off-user OFF_PASSWORD=your-off-password --project-ref <your-project-ref>
 ```
 
 A free USDA key comes from the
 [FoodData Central signup](https://fdc.nal.usda.gov/api-key-signup.html); without
 it the function uses the shared `DEMO_KEY`, which works but is heavily
-rate-limited (and may return 429s under load). Open Food Facts needs no key.
-Edamam credentials come from the
+rate-limited (and may return 429s under load). Edamam credentials come from the
 [Edamam Food Database API](https://developer.edamam.com/food-database-api)
 (free tier available); without them the Edamam source is silently skipped and
 the other sources still work.
+
+Open Food Facts needs no API key — read access is fully open. It does, however,
+throttle **anonymous** traffic during peak load (returning 503s), so OFF results
+are best-effort by default. To make them reliable, set `OFF_USERNAME` /
+`OFF_PASSWORD` to a free [Open Food Facts account](https://world.openfoodfacts.org):
+the function then sends those over HTTP Basic Auth (OFF's only credential — there
+are no keys) and the requests skip the anonymous limit. When unset, OFF calls
+stay anonymous.
 
 > **Until the function is deployed, food search and barcode lookup return
 > nothing** — the client no longer calls the food APIs directly.
