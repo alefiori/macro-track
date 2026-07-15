@@ -50,6 +50,11 @@ export const nl: Translation = {
     mealCopiedOther: '{count} items gekopieerd uit {meal} van',
     clearCopiedMeal: 'Gekopieerde maaltijd wissen',
     failedPasteMeal: 'Maaltijd plakken mislukt.',
+    shareDay: 'Delen',
+    shareDayAria: "Macro's van deze dag delen",
+    shareMealAria: '{meal} delen',
+    shareCopied: 'Gekopieerd naar het klembord — klaar om in een chat te plakken.',
+    failedShare: 'Delen mislukt.',
     previousDay: 'Vorige dag',
     nextDay: 'Volgende dag',
     itemCopiedOne: '{count} item gekopieerd van',
@@ -225,6 +230,9 @@ export const nl: Translation = {
     languageDescription: 'Taal voor de app-interface en voor de zoek- en barcoderesultaten van Open Food Facts.',
     couldNotSaveLanguage: 'Taal kon niet worden opgeslagen. Probeer het opnieuw.',
     signOut: 'Afmelden',
+  },
+  export: {
+    total: 'Totaal',
   },
   weekday: {
     short: {

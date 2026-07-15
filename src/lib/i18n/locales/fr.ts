@@ -50,6 +50,11 @@ export const fr: Translation = {
     mealCopiedOther: '{count} éléments copiés depuis {meal} le',
     clearCopiedMeal: 'Effacer le repas copié',
     failedPasteMeal: 'Échec du collage du repas.',
+    shareDay: 'Partager',
+    shareDayAria: 'Partager les macros de cette journée',
+    shareMealAria: 'Partager {meal}',
+    shareCopied: 'Copié dans le presse-papiers — prêt à coller dans une discussion.',
+    failedShare: 'Échec du partage.',
     previousDay: 'Jour précédent',
     nextDay: 'Jour suivant',
     itemCopiedOne: '{count} élément copié depuis',
@@ -225,6 +230,9 @@ export const fr: Translation = {
     languageDescription: 'Langue de l’interface de l’application et des résultats de recherche et de code-barres Open Food Facts.',
     couldNotSaveLanguage: 'Impossible d’enregistrer la langue. Veuillez réessayer.',
     signOut: 'Se déconnecter',
+  },
+  export: {
+    total: 'Total',
   },
   weekday: {
     short: {

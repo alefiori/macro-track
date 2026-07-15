@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAppShell } from '@/context/AppShellContext'
 import { useProfile } from '@/context/ProfileContext'
@@ -20,6 +20,7 @@ import {
 } from '@/lib/macros'
 import { addDays, dayOfWeek, formatLong, formatMonthDay, formatShort, formatWeekday, isToday, todayISO } from '@/lib/date'
 import { copyDayFoods, copyMealFoods, deleteFoodLog, updateLogServings } from '@/lib/foods'
+import { formatDayText, formatMealText, shareText } from '@/lib/exportText'
 import type { FoodLogWithFood } from '@/lib/database.types'
 
 const ZERO: MacroGrams = { carbs_g: 0, protein_g: 0, fats_g: 0 }
@@ -46,6 +47,27 @@ export default function Dashboard() {
   const [pasting, setPasting] = useState(false)
   const [pastingMeal, setPastingMeal] = useState<MealKey | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
+  const [shareNotice, setShareNotice] = useState<string | null>(null)
+  const shareNoticeTimer = useRef<ReturnType<typeof setTimeout>>()
+
+  useEffect(() => () => clearTimeout(shareNoticeTimer.current), [])
+
+  function flashShareNotice(message: string) {
+    setShareNotice(message)
+    clearTimeout(shareNoticeTimer.current)
+    shareNoticeTimer.current = setTimeout(() => setShareNotice(null), 3000)
+  }
+
+  async function handleShare(text: string) {
+    if (!text) return
+    setActionError(null)
+    try {
+      const outcome = await shareText(text)
+      if (outcome === 'copied') flashShareNotice(t('dashboard.shareCopied'))
+    } catch {
+      setActionError(t('dashboard.failedShare'))
+    }
+  }
 
   const canPasteHere = copiedDay !== null && copiedDay.date !== selectedDate
 
@@ -105,6 +127,16 @@ export default function Dashboard() {
           </p>
         </div>
         <div className="flex items-center gap-sm">
+          <button
+            onClick={() => handleShare(formatDayText(logs, selectedDate, locale, t))}
+            disabled={logsLoading || logs.length === 0}
+            className="flex items-center gap-xs rounded-full bg-surface-container-low px-3 py-2 font-label-md text-label-md text-on-surface-variant transition-colors hover:bg-surface-container-high disabled:cursor-not-allowed disabled:opacity-40"
+            aria-label={t('dashboard.shareDayAria')}
+            title={t('dashboard.shareDayAria')}
+          >
+            <Icon name="ios_share" className="text-sm" />
+            <span className="hidden sm:inline">{t('dashboard.shareDay')}</span>
+          </button>
           <button
             onClick={() => copyDay(selectedDate, logs.length)}
             disabled={logsLoading || logs.length === 0}
@@ -192,6 +224,13 @@ export default function Dashboard() {
             <Icon name="close" className="text-sm" />
           </button>
         </div>
+      )}
+
+      {shareNotice && (
+        <p className="flex items-center gap-sm rounded-2xl border border-primary/30 bg-primary-container/10 px-md py-sm font-label-md text-label-md text-on-surface">
+          <Icon name="check_circle" className="text-sm text-primary" />
+          {shareNotice}
+        </p>
       )}
 
       {actionError && (
@@ -287,6 +326,9 @@ export default function Dashboard() {
                       onAdd={() => openAddFood({ meal: meal.key })}
                       onChanged={bumpFoodLogVersion}
                       onCopy={() => copyMeal(selectedDate, meal.key, mealLogs.length)}
+                      onShare={() =>
+                        handleShare(formatMealText(meal.key, mealLogs, selectedDate, locale, t))
+                      }
                       canPaste={copiedMeal !== null}
                       pasting={pastingMeal === meal.key}
                       onPaste={() => handlePasteMeal(meal.key)}
@@ -344,6 +386,7 @@ function MealCard({
   onAdd,
   onChanged,
   onCopy,
+  onShare,
   canPaste,
   pasting,
   onPaste,
@@ -354,6 +397,7 @@ function MealCard({
   onAdd: () => void
   onChanged: () => void
   onCopy: () => void
+  onShare: () => void
   canPaste: boolean
   pasting: boolean
   onPaste: () => void
@@ -390,6 +434,16 @@ function MealCard({
             >
               {pasting ? <Spinner className="h-4 w-4" /> : <Icon name="content_paste" className="text-sm" />}
               <span className="hidden sm:inline">{t('dashboard.pasteMealHere')}</span>
+            </button>
+          )}
+          {!empty && (
+            <button
+              onClick={onShare}
+              className="rounded-full p-1 text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-primary"
+              aria-label={t('dashboard.shareMealAria', { meal: label })}
+              title={t('dashboard.shareMealAria', { meal: label })}
+            >
+              <Icon name="ios_share" className="text-sm" />
             </button>
           )}
           {!empty && (

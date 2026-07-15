@@ -1,0 +1,113 @@
+/**
+ * Plain-text export of meals/days for sharing over chat (WhatsApp, iMessage…).
+ * Produces compact, emoji-annotated text and hands it to the Web Share API,
+ * falling back to the clipboard where no share sheet exists.
+ */
+import { MACROS, MEALS, type MealKey } from '@/lib/constants'
+import { caloriesForServings, round, scaleMacros, sumMacros } from '@/lib/macros'
+import { formatLong } from '@/lib/date'
+import type { TranslationKey } from '@/lib/i18n'
+import type { FoodLogWithFood } from '@/lib/database.types'
+
+type TFunction = (key: TranslationKey, params?: Record<string, string | number>) => string
+
+const MEAL_EMOJI: Record<MealKey, string> = {
+  breakfast: '🌅',
+  lunch: '🌞',
+  dinner: '🌙',
+  snack: '🍎',
+}
+
+/** e.g. "C 54g · P 11g · F 6g" using the locale's macro abbreviations. */
+function macroLine(logs: FoodLogWithFood[], t: TFunction): string {
+  const total = sumMacros(logs.map((l) => scaleMacros(l.food, l.servings)))
+  return MACROS.map((m) => `${t(`macro.${m.key}Abbr`)} ${round(total[m.field])}g`).join(' · ')
+}
+
+function kcalTotal(logs: FoodLogWithFood[]): number {
+  return Math.round(logs.reduce((sum, l) => sum + caloriesForServings(l.food, l.servings), 0))
+}
+
+/** One bullet per logged food: name, logged quantity, kcal and macros. */
+function foodLines(logs: FoodLogWithFood[], t: TFunction): string[] {
+  return logs.map((log) => {
+    const amount = round(log.servings * log.food.serving_amount, 2)
+    const kcal = Math.round(caloriesForServings(log.food, log.servings))
+    const scaled = scaleMacros(log.food, log.servings)
+    const macros = MACROS.map((m) => `${t(`macro.${m.key}Abbr`)} ${round(scaled[m.field])}g`).join(
+      ' · ',
+    )
+    return `• ${log.food.name} — ${amount} ${log.food.serving_unit} · ${kcal} ${t('common.kcal')} (${macros})`
+  })
+}
+
+/** Chat-ready text for a single meal on a date. Empty string when no logs. */
+export function formatMealText(
+  meal: MealKey,
+  logs: FoodLogWithFood[],
+  date: string,
+  locale: string,
+  t: TFunction,
+): string {
+  if (logs.length === 0) return ''
+  const lines = [
+    `${MEAL_EMOJI[meal]} ${t(`meal.${meal}`)} — ${formatLong(date, locale)}`,
+    ...foodLines(logs, t),
+    '',
+    `${t('export.total')}: ${kcalTotal(logs)} ${t('common.kcal')} · ${macroLine(logs, t)}`,
+  ]
+  return lines.join('\n')
+}
+
+/** Chat-ready text for a whole day, grouped by meal (empty meals skipped). */
+export function formatDayText(
+  logs: FoodLogWithFood[],
+  date: string,
+  locale: string,
+  t: TFunction,
+): string {
+  if (logs.length === 0) return ''
+  const sections = MEALS.flatMap((meal) => {
+    const mealLogs = logs.filter((l) => l.meal === meal.key)
+    if (mealLogs.length === 0) return []
+    return [
+      [
+        `${MEAL_EMOJI[meal.key]} ${t(`meal.${meal.key}`)} · ${kcalTotal(mealLogs)} ${t('common.kcal')}`,
+        ...foodLines(mealLogs, t),
+      ].join('\n'),
+    ]
+  })
+  const totals = sumMacros(logs.map((l) => scaleMacros(l.food, l.servings)))
+  const totalNames = MACROS.map((m) => `${t(`macro.${m.key}`)} ${round(totals[m.field])}g`).join(
+    ' · ',
+  )
+  return [
+    `📅 ${formatLong(date, locale)}`,
+    '',
+    sections.join('\n\n'),
+    '',
+    `${t('export.total')}: ${kcalTotal(logs)} ${t('common.kcal')}`,
+    totalNames,
+  ].join('\n')
+}
+
+export type ShareOutcome = 'shared' | 'copied' | 'dismissed'
+
+/**
+ * Share text via the native share sheet when available, otherwise copy it to
+ * the clipboard. Returns how the text left the app so the caller can show the
+ * right feedback ('dismissed' = user closed the share sheet without sending).
+ */
+export async function shareText(text: string): Promise<ShareOutcome> {
+  if (typeof navigator.share === 'function') {
+    try {
+      await navigator.share({ text })
+      return 'shared'
+    } catch (e) {
+      if (e instanceof DOMException && e.name === 'AbortError') return 'dismissed'
+      // NotAllowedError etc. — fall through to the clipboard.
+    }
+  }
+  await navigator.clipboard.writeText(text)
+  return 'copied'
+}

@@ -55,6 +55,11 @@ export const en = {
     mealCopiedOther: '{count} items copied from {meal} on',
     clearCopiedMeal: 'Clear copied meal',
     failedPasteMeal: 'Failed to paste meal.',
+    shareDay: 'Share',
+    shareDayAria: "Share this day's macros",
+    shareMealAria: 'Share {meal}',
+    shareCopied: 'Copied to clipboard — ready to paste in a chat.',
+    failedShare: 'Could not share.',
     previousDay: 'Previous day',
     nextDay: 'Next day',
     itemCopiedOne: '{count} item copied from',
@@ -230,6 +235,9 @@ export const en = {
     languageDescription: 'Language for the app interface and Open Food Facts search and barcode results.',
     couldNotSaveLanguage: 'Could not save language. Please try again.',
     signOut: 'Sign out',
+  },
+  export: {
+    total: 'Total',
   },
   weekday: {
     short: {
