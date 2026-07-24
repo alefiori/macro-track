@@ -3,12 +3,18 @@
 [![CI](https://github.com/alefiori/macro-track/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/alefiori/macro-track/actions/workflows/ci.yml)
 [![Netlify Status](https://api.netlify.com/api/v1/badges/711ad0e3-f068-4066-8538-38bab13b2bab/deploy-status)](https://app.netlify.com/sites/macros-track/deploys)
 
-A responsive daily macros tracker built with **React + Vite + TypeScript**,
-**Tailwind CSS**, and **Supabase** (Postgres + Auth). Set per-weekday macro
-targets, log foods against them, and watch your daily carbs / protein / fats
-fill up. Food data comes from your own custom foods plus two free databases:
-[Open Food Facts](https://world.openfoodfacts.org) and
-[USDA FoodData Central](https://fdc.nal.usda.gov).
+A responsive, installable daily macros tracker built with **React + Vite +
+TypeScript**, **Tailwind CSS**, and **Supabase** (Postgres + Auth). Set
+per-weekday macro targets, log foods against them, and watch your daily carbs /
+protein / fats fill up. Food data comes from your own custom foods, foods shared
+by the community, and three free databases:
+[Open Food Facts](https://world.openfoodfacts.org),
+[USDA FoodData Central](https://fdc.nal.usda.gov), and
+[Edamam](https://developer.edamam.com/food-database-api).
+
+The app is a **PWA** (installable, works offline via a precached shell), is fully
+**localized into 7 languages**, and lets you **try it instantly as a guest**
+before creating an account.
 
 The UI is a faithful port of the Google Stitch design export in
 [`design/stitch_macrotrack_health_dashboard/`](design/stitch_macrotrack_health_dashboard/) —
@@ -19,27 +25,48 @@ and the per-screen `code.html` files.
 
 - **Email/password auth** (sign up, sign in, sign out, forgot password) with a
   persisted session; all app routes are gated behind an auth guard.
+- **Guest mode** — "continue as guest" starts an anonymous session so you can
+  try the app with zero signup. A persistent banner offers to **upgrade to a
+  permanent account** later, keeping the same `user_id` so all logged data
+  carries over.
 - **My Targets** — per-weekday carbs/protein/fats goals with live calorie totals
   and "copy one day to all days".
 - **Daily Tracker** — date selector, three macro progress rings (consumed vs.
   target + remaining), foods grouped by meal with inline edit/delete, and a
   calorie summary.
-- **Add Food** — debounced search merging your own foods with live Open Food
-  Facts and USDA FoodData Central results (each tagged with its source); pick a
-  meal, adjust servings, and log.
+- **Copy day & copy meal** — duplicate a whole day's logs onto another date, or
+  copy a single meal into any meal slot on any day (appends, preserving
+  servings).
+- **Add Food** — debounced search merging your own foods, community foods, and
+  live Open Food Facts / USDA / Edamam results (each tagged with its source);
+  pick a meal, adjust servings, and log. Includes a **barcode scanner**
+  (camera-based, via ZXing) for looking foods up by their UPC/EAN.
 - **Create Custom Food** — name, serving, per-serving macros with live calorie
   calc, plus "save & add to today".
-- **My Foods** — manage your custom and imported foods.
+- **My Foods** — manage your custom and imported foods, and **share them to the
+  community** (or unshare) so other users can find and reuse them.
+- **Share meals & days** — export a meal or a whole day as compact,
+  emoji-annotated plain text via the native share sheet (WhatsApp, iMessage, …),
+  falling back to the clipboard where no share sheet exists.
+- **Internationalization** — the UI is available in English, Italian, French,
+  Spanish, German, Portuguese, and Dutch. A single preference on the Profile
+  page drives both the interface language **and** the language of Open Food Facts
+  results.
+- **Installable PWA** — add to home screen / install as an app; the app shell is
+  precached so it launches offline.
 
 ## Tech stack
 
-| Concern    | Choice                                  |
-| ---------- | --------------------------------------- |
-| Build      | Vite + React 18 + TypeScript            |
-| Styling    | Tailwind CSS (via PostCSS, not the CDN) |
-| Routing    | React Router v6                         |
-| Backend    | Supabase (Postgres + Auth + RLS + Edge Functions)       |
-| Food data  | Open Food Facts + USDA FoodData Central (server-side proxy) |
+| Concern    | Choice                                                            |
+| ---------- | ---------------------------------------------------------------- |
+| Build      | Vite + React 18 + TypeScript                                     |
+| Styling    | Tailwind CSS (via PostCSS, not the CDN)                          |
+| Routing    | React Router v6                                                  |
+| Backend    | Supabase (Postgres + Auth + RLS + Edge Functions)               |
+| Food data  | Open Food Facts + USDA FoodData Central + Edamam (server-side proxy) |
+| Barcode    | `@zxing/browser` + `@zxing/library` (camera scanning)           |
+| i18n       | Zero-dependency in-house catalog (7 locales)                    |
+| PWA        | `vite-plugin-pwa` (Workbox) + `@vite-pwa/assets-generator`      |
 
 ## Getting started
 
@@ -49,15 +76,13 @@ and the per-screen `code.html` files.
 2. Once it's provisioned, open **Settings → API** and note the
    **Project URL** and the **anon/public** API key.
 
-### 2. Run the database migration
+### 2. Run the database migrations
 
-The schema (tables + row-level security) lives in
-[`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql).
+The schema (tables + row-level security, profiles, community foods, and the
+extra food sources) lives in the ordered SQL files under
+[`supabase/migrations/`](supabase/migrations/).
 
-**Option A — Supabase SQL Editor (quickest):** open the SQL Editor in the
-dashboard, paste the contents of `0001_init.sql`, and run it.
-
-**Option B — Supabase CLI:**
+**Option A — Supabase CLI (recommended, applies every migration):**
 
 ```bash
 npm install -g supabase
@@ -66,18 +91,30 @@ supabase link --project-ref <your-project-ref>
 supabase db push
 ```
 
-This creates `macro_targets`, `foods`, and `food_logs`, enables RLS, and adds
-policies so each user can only read/write their own rows (global foods with a
-null `user_id` are readable by everyone).
+**Option B — Supabase SQL Editor:** open the SQL Editor in the dashboard and run
+each migration file **in order** (`0001_init.sql` → `0006_community_food_safety.sql`).
 
-### 3. Deploy the `food-search` Edge Function
+Together the migrations create `macro_targets`, `foods`, `food_logs`, and
+`profiles`; enable RLS with owner-only policies (global foods with a null
+`user_id` are readable by everyone); add the `usda` and `edamam` food sources;
+add per-user profile settings (preferred language); and add **community foods**
+(`foods.is_public`) — including the guards that keep a shared food safe to
+unshare and prevent deleting one that other people have logged.
+
+### 3. Enable guest sign-in (optional but recommended)
+
+The "continue as guest" flow uses Supabase **anonymous sign-ins**. Enable them
+under **Authentication → Providers → Anonymous Sign-Ins** in the dashboard.
+Without this, only email/password auth works.
+
+### 4. Deploy the `food-search` Edge Function
 
 All external food lookups (text search + barcode) run **server-side** in a
 Supabase [Edge Function](supabase/functions/food-search), not from the browser.
 This is required: [Open Food Facts](https://world.openfoodfacts.org)' search API
-sends no CORS headers, so browsers can't call it directly, and the USDA API key
-must not ship in the client bundle. The function fans out to every source in
-parallel, normalizes results to a shared shape, and de-duplicates them.
+sends no CORS headers, so browsers can't call it directly, and the USDA/Edamam
+API keys must not ship in the client bundle. The function fans out to every
+source in parallel, normalizes results to a shared shape, and de-duplicates them.
 
 ```bash
 supabase functions deploy food-search --project-ref <your-project-ref>
@@ -111,7 +148,7 @@ stay anonymous.
 > **Until the function is deployed, food search and barcode lookup return
 > nothing** — the client no longer calls the food APIs directly.
 
-### 4. Configure environment variables
+### 5. Configure environment variables
 
 ```bash
 cp .env.example .env
@@ -124,7 +161,7 @@ VITE_SUPABASE_URL=https://your-project-ref.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-public-key
 ```
 
-No food-API keys live here — they're function secrets (see step 3), kept out of
+No food-API keys live here — they're function secrets (see step 4), kept out of
 the client bundle. `.env` is gitignored — never commit secrets. The anon key is
 safe to ship in a client bundle; RLS is what protects your data.
 
@@ -133,7 +170,7 @@ safe to ship in a client bundle; RLS is what protects your data.
 > **Authentication → Providers → Email** so new accounts can sign in
 > immediately.
 
-### 5. Install and run
+### 6. Install and run
 
 ```bash
 npm install
@@ -147,6 +184,7 @@ Other scripts:
 ```bash
 npm run build      # type-check + production build
 npm run preview    # preview the production build
+npm run typecheck  # type-check only (no emit)
 ```
 
 ## How external food data is modeled
@@ -175,18 +213,44 @@ function's `SOURCES` array — no client or env changes needed. All math (4/4/9 
 per gram, per-serving scaling, per-100g conversion, remaining-vs-target, ring
 offsets) lives in [`src/lib/macros.ts`](src/lib/macros.ts).
 
+## Community foods
+
+Any custom food can be **shared to the community** by toggling `foods.is_public`
+from **My Foods**; shared foods then show up in every user's search. Sharing
+preserves attribution (the owner's `user_id` is kept), so publishers keep
+edit/delete rights. Two safety guards back this (see
+[`0006_community_food_safety.sql`](supabase/migrations/0006_community_food_safety.sql)):
+
+- **Unsharing is always safe** — a user can still read any food they've logged,
+  even after the owner unshares it, so a logged entry never breaks.
+- **A shared food that others have logged can't be deleted** — deletion would
+  cascade to other people's logs, so the owner must unshare it instead.
+
+## Internationalization
+
+The UI ships in 7 languages (English, Italian, French, Spanish, German,
+Portuguese, Dutch). The i18n core ([`src/lib/i18n/`](src/lib/i18n/)) is
+dependency-free: catalogs are plain nested objects and `translate()` resolves
+dot-paths with `{name}` interpolation, falling back to English then the raw key
+so a missing translation never throws. The English catalog
+([`locales/en.ts`](src/lib/i18n/locales/en.ts)) is canonical — TypeScript
+enforces that every other locale matches its shape. The selected locale is the
+same value stored in `profiles.off_language`, so **one preference drives both the
+UI language and the Open Food Facts result language**.
+
 ## Project structure
 
 ```
 src/
-  components/   # layout, UI primitives, Add Food modal
-  context/      # AuthContext, AppShellContext
-  hooks/        # useFoodLogs, useTargets, useFoodSearch, useDebounce
-  lib/          # supabase client, macros math, foodApi (Edge Function client), types
-  pages/        # Auth, Dashboard, Targets, MyFoods, CreateCustomFood, Profile
+  components/   # layout (incl. guest banner), UI primitives, Add Food modal, barcode scanner
+  context/      # AuthContext, ProfileContext, I18nContext, AppShellContext
+  hooks/        # useFoodLogs, useTargets, useFoodSearch, useDebounce, useScrollLock
+  lib/          # supabase client, macros math, foodApi (Edge Function client),
+                #   foods (CRUD/copy/share), exportText (chat share), i18n, types
+  pages/        # Auth, ForgotPassword, Dashboard, Targets, MyFoods, CreateCustomFood, Profile
 supabase/
   functions/    # food-search Edge Function (external food data proxy)
-  migrations/   # SQL schema + RLS
+  migrations/   # SQL schema + RLS + profiles + community foods
 ```
 
 ## Credits
@@ -200,3 +264,7 @@ Food data is provided by:
 - **[USDA FoodData Central](https://fdc.nal.usda.gov)** — U.S. Department of
   Agriculture, Agricultural Research Service. FoodData Central data is in the
   public domain.
+- **[Edamam Food Database](https://developer.edamam.com/food-database-api)** —
+  nutrition data provided by the Edamam Food Database API.
+</content>
+</invoke>
