@@ -11,6 +11,15 @@
   body {
     @apply bg-background text-on-surface font-sans antialiased;
   }
+  /* Prevent iOS Safari from auto-zooming when a form control is focused.
+     Mobile browsers zoom in on any focused input whose font-size is below
+     16px, so use that as the safe default for controls without an explicit
+     size utility. */
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
 }
 
 /* Material Symbols Outlined — variation settings (from the Stitch export) */

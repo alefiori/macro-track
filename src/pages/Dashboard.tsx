@@ -563,13 +563,14 @@ function FoodLogRow({ log, onChanged }: { log: FoodLogWithFood; onChanged: () =>
           <div className="flex items-center gap-1">
             <input
               type="number"
+              inputMode="decimal"
               min={0}
               step="any"
               value={amount}
               onChange={(e) => setAmount(Math.max(0, parseFloat(e.target.value) || 0))}
               onFocus={(e) => e.target.select()}
               aria-label={t('dashboard.amountInUnit', { unit: log.food.serving_unit })}
-              className="h-9 w-20 rounded-lg border border-outline-variant bg-surface px-2 text-center font-body-md text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+              className="h-9 w-20 rounded-lg border border-outline-variant bg-surface px-2 text-center font-body-md text-body-md outline-none focus:border-primary focus:ring-1 focus:ring-primary"
             />
             <span className="font-body-md text-sm text-on-surface-variant">{log.food.serving_unit}</span>
             <button

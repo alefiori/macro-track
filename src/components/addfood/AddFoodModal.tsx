@@ -466,6 +466,7 @@ export function AddFoodModal({
                     <input
                       id="amount-input"
                       type="number"
+                      inputMode="decimal"
                       min={0}
                       step="any"
                       value={amount}

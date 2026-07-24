@@ -181,6 +181,7 @@ export default function Targets() {
                         <input
                           id={`target-${dow}-${m.key}`}
                           type="number"
+                          inputMode="numeric"
                           min={0}
                           placeholder="0"
                           value={v[m.field] || ''}

@@ -202,6 +202,7 @@ export default function CreateCustomFood() {
                 <input
                   id="servingAmount"
                   type="number"
+                  inputMode="decimal"
                   min={0}
                   step="any"
                   value={servingAmount}
@@ -263,6 +264,7 @@ export default function CreateCustomFood() {
                   <input
                     id={`${m.key}Input`}
                     type="number"
+                    inputMode="decimal"
                     min={0}
                     step="any"
                     value={valueOf[m.field]}
